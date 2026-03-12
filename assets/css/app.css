@@ -1,0 +1,4 @@
+body { font-size: 0.95rem; }
+.sidebar .nav-link { color: #1d3557; }
+.sidebar .nav-link:hover { background: #e9f2ff; border-radius: 6px; }
+.card { border-radius: 10px; }
