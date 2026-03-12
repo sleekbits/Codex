@@ -18,10 +18,20 @@ $(function(){
 
   $('#dashboardFilters').on('click', '.slicer-tile', function(){
     const key = $(this).data('filter');
-    const value = $(this).data('value');
+    const value = String($(this).data('value'));
     const current = new URLSearchParams(window.location.search);
-    if (current.get(key) == String(value)) current.delete(key); else current.set(key, value);
-    if (key === 'year') current.delete('month');
+    const existing = current.getAll(key);
+
+    if (existing.includes(value)) {
+      const next = existing.filter(v => v !== value);
+      current.delete(key);
+      next.forEach(v => current.append(key, v));
+      $(this).removeClass('active');
+    } else {
+      current.append(key, value);
+      $(this).addClass('active');
+    }
+
     history.replaceState({}, '', '?' + current.toString());
     refreshDashboard(current);
   });

@@ -75,37 +75,64 @@ function log_activity(?int $userId, string $action, string $description): void
     $stmt->execute([$userId, $action, $description, $_SERVER['REMOTE_ADDR'] ?? 'CLI']);
 }
 
+function get_multi_filter(string $key): array
+{
+    if (!isset($_GET[$key])) {
+        return [];
+    }
+    $raw = $_GET[$key];
+    $vals = is_array($raw) ? $raw : explode(',', (string)$raw);
+    $vals = array_values(array_filter(array_map(static fn($v) => trim((string)$v), $vals), static fn($v) => $v !== ''));
+    return array_unique($vals);
+}
+
 function query_filters(): array
 {
     return [
-        'year' => $_GET['year'] ?? date('Y'),
-        'month' => $_GET['month'] ?? '',
-        'assigned_to' => $_GET['assigned_to'] ?? '',
-        'contractor_id' => $_GET['contractor_id'] ?? '',
-        'po_status_id' => $_GET['po_status_id'] ?? '',
-        'type_id' => $_GET['type_id'] ?? '',
+        'year' => get_multi_filter('year'),
+        'month' => get_multi_filter('month'),
+        'assigned_to' => get_multi_filter('assigned_to'),
+        'contractor_id' => get_multi_filter('contractor_id'),
+        'po_status_id' => get_multi_filter('po_status_id'),
+        'type_id' => get_multi_filter('type_id'),
         'search' => trim($_GET['search'] ?? ''),
     ];
+}
+
+function where_in_clause(string $column, array $values, array &$params): ?string
+{
+    if (!$values) {
+        return null;
+    }
+    $placeholders = implode(',', array_fill(0, count($values), '?'));
+    foreach ($values as $value) {
+        $params[] = $value;
+    }
+    return "$column IN ($placeholders)";
 }
 
 function tracking_where_sql(array $filters, array &$params): string
 {
     $where = ['tr.deleted_at IS NULL'];
 
-    if ($filters['year']) {
-        $where[] = 'YEAR(tr.pr_receival_date) = ?';
-        $params[] = $filters['year'];
+    if ($clause = where_in_clause('YEAR(tr.pr_receival_date)', $filters['year'] ?? [], $params)) {
+        $where[] = $clause;
     }
-    if ($filters['month']) {
-        $where[] = 'MONTH(tr.pr_receival_date) = ?';
-        $params[] = $filters['month'];
+    if ($clause = where_in_clause('MONTH(tr.pr_receival_date)', $filters['month'] ?? [], $params)) {
+        $where[] = $clause;
     }
-    foreach (['assigned_to' => 'tr.assigned_to_user_id', 'contractor_id' => 'tr.contractor_id', 'po_status_id' => 'tr.po_status_id', 'type_id' => 'tr.type_id'] as $key => $column) {
-        if (!empty($filters[$key])) {
-            $where[] = "$column = ?";
-            $params[] = $filters[$key];
+
+    foreach ([
+        'assigned_to' => 'tr.assigned_to_user_id',
+        'contractor_id' => 'tr.contractor_id',
+        'po_status_id' => 'tr.po_status_id',
+        'type_id' => 'tr.type_id'
+    ] as $key => $column) {
+        if ($clause = where_in_clause($column, $filters[$key] ?? [], $params)) {
+            $where[] = $clause;
         }
     }
+
     if (!empty($filters['search'])) {
         $where[] = '(tr.pr_no LIKE ? OR tr.brief_description LIKE ? OR tr.wo_dwo_vo_ref LIKE ? OR tr.contract_reference LIKE ? OR c.contractor_name LIKE ? OR tr.po_no LIKE ? OR tr.remarks LIKE ?)';
         for ($i = 0; $i < 7; $i++) {
@@ -115,7 +142,6 @@ function tracking_where_sql(array $filters, array &$params): string
 
     return ' WHERE ' . implode(' AND ', $where);
 }
-
 
 function format_date(?string $date): string
 {
@@ -136,4 +162,9 @@ function status_badge_class(string $status): string
         'Deleted' => 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle',
         default => 'bg-light text-dark border'
     };
+}
+
+function selected_multi(array $values, $value): string
+{
+    return in_array((string)$value, array_map('strval', $values), true) ? 'selected' : '';
 }

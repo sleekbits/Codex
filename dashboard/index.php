@@ -7,21 +7,24 @@ $months = $pdo->query("SELECT DISTINCT MONTH(pr_receival_date) m FROM tracking_r
 $types = $pdo->query("SELECT id, type_name FROM types ORDER BY type_name")->fetchAll();
 $filters = query_filters();
 ?>
-<div class="d-flex justify-content-between align-items-center mb-3"><h3 class="mb-0">Dashboard Analytics</h3><a class="btn btn-outline-secondary btn-sm" href="index.php">Clear All</a></div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Dashboard Analytics</h3>
+    <a class="btn btn-outline-secondary btn-sm" href="index.php"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear All</a>
+</div>
 <div class="row g-3 mb-3" id="dashboardFilters">
   <div class="col-md-4">
-    <div class="card p-3"><div class="slicer-title">Year Slicer</div><div class="slicer-grid cols-2">
-      <?php foreach($years as $y): ?><button class="slicer-tile <?= (string)$filters['year']===(string)$y['y']?'active':'' ?>" data-filter="year" data-value="<?= $y['y'] ?>"><?= $y['y'] ?></button><?php endforeach; ?>
+    <div class="card p-3"><div class="slicer-title">Year Slicer (Multi-select)</div><div class="slicer-grid cols-2">
+      <?php foreach($years as $y): ?><button type="button" class="slicer-tile <?= in_array((string)$y['y'], array_map('strval', $filters['year']), true)?'active':'' ?>" data-filter="year" data-value="<?= $y['y'] ?>"><?= $y['y'] ?></button><?php endforeach; ?>
     </div></div>
   </div>
   <div class="col-md-4">
-    <div class="card p-3"><div class="slicer-title">Month Slicer</div><div class="slicer-grid cols-2">
-      <?php foreach($months as $m): $label=date('M', mktime(0,0,0,$m['m'],1)); ?><button class="slicer-tile <?= (string)$filters['month']===(string)$m['m']?'active':'' ?>" data-filter="month" data-value="<?= $m['m'] ?>"><?= $label ?></button><?php endforeach; ?>
+    <div class="card p-3"><div class="slicer-title">Month Slicer (Multi-select)</div><div class="slicer-grid cols-2">
+      <?php foreach($months as $m): $label=date('M', mktime(0,0,0,$m['m'],1)); ?><button type="button" class="slicer-tile <?= in_array((string)$m['m'], array_map('strval', $filters['month']), true)?'active':'' ?>" data-filter="month" data-value="<?= $m['m'] ?>"><?= $label ?></button><?php endforeach; ?>
     </div></div>
   </div>
   <div class="col-md-4">
-    <div class="card p-3"><div class="slicer-title">Type Slicer</div><div class="slicer-grid cols-1" style="max-height:180px;overflow:auto;">
-      <?php foreach($types as $t): ?><button class="slicer-tile <?= (string)$filters['type_id']===(string)$t['id']?'active':'' ?>" data-filter="type_id" data-value="<?= $t['id'] ?>"><?= e($t['type_name']) ?></button><?php endforeach; ?>
+    <div class="card p-3"><div class="slicer-title">Type Slicer (Multi-select)</div><div class="slicer-grid cols-1" style="max-height:180px;overflow:auto;">
+      <?php foreach($types as $t): ?><button type="button" class="slicer-tile <?= in_array((string)$t['id'], array_map('strval', $filters['type_id']), true)?'active':'' ?>" data-filter="type_id" data-value="<?= $t['id'] ?>"><?= e($t['type_name']) ?></button><?php endforeach; ?>
     </div></div>
   </div>
 </div>

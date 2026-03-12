@@ -8,12 +8,14 @@ if (is_logged_in()) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
+    $rememberMe = !empty($_POST['remember_me']);
 
     $stmt = $pdo->prepare('SELECT u.*, r.role_name FROM users u JOIN roles r ON r.id = u.role_id WHERE username = ? AND is_active = 1');
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password'])) {
+        session_regenerate_id(true);
         $_SESSION['user'] = [
             'id' => $user['id'],
             'full_name' => $user['full_name'],
@@ -22,7 +24,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'role_id' => $user['role_id'],
             'role_name' => $user['role_name'],
         ];
-        log_activity($user['id'], 'Login', 'User logged in');
+
+        $cookieParams = session_get_cookie_params();
+        if ($rememberMe) {
+            $lifetime = 60 * 60 * 24 * 30;
+            setcookie(session_name(), session_id(), [
+                'expires' => time() + $lifetime,
+                'path' => $cookieParams['path'] ?: '/',
+                'domain' => $cookieParams['domain'] ?: '',
+                'secure' => !empty($_SERVER['HTTPS']),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+
+        log_activity($user['id'], 'Login', 'User logged in' . ($rememberMe ? ' (remember me)' : ''));
         header('Location: /Codex/dashboard/index.php');
         exit;
     }
@@ -69,8 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="rememberMe" disabled>
-                                <label class="form-check-label text-muted-custom" for="rememberMe">Remember me (coming soon)</label>
+                                <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me" value="1">
+                                <label class="form-check-label" for="rememberMe">Remember me</label>
                             </div>
                             <a class="auth-link" href="forgot_password.php">Forgot password?</a>
                         </div>

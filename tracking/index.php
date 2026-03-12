@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../layouts/sidebar.php';
+
 $filters = query_filters();
 $filters['pr_no'] = trim($_GET['pr_no'] ?? '');
 $filters['po_no'] = trim($_GET['po_no'] ?? '');
@@ -31,23 +32,25 @@ $users = $pdo->query("SELECT id,full_name FROM users WHERE is_active=1 ORDER BY 
 $contractors = $pdo->query("SELECT id,contractor_name FROM contractors WHERE status=1 ORDER BY contractor_name")->fetchAll();
 $statuses = $pdo->query("SELECT id,status_name FROM po_statuses ORDER BY id")->fetchAll();
 $types = $pdo->query("SELECT id,type_name FROM types ORDER BY type_name")->fetchAll();
+$years = $pdo->query("SELECT DISTINCT YEAR(pr_receival_date) y FROM tracking_records WHERE deleted_at IS NULL ORDER BY y DESC")->fetchAll();
+$months = $pdo->query("SELECT DISTINCT MONTH(pr_receival_date) m FROM tracking_records WHERE deleted_at IS NULL ORDER BY m ASC")->fetchAll();
 ?>
 <div class="d-flex justify-content-between mb-2 align-items-center"><h3>Tracking Records</h3><?php if (can_manage()): ?><a class="btn btn-primary" href="form.php"><i class="bi bi-plus-lg me-1"></i>Add Record</a><?php endif; ?></div>
 
 <div class="filter-card p-3 mb-3">
 <form class="row g-2" method="get">
-<div class="col-md-1"><input class="form-control" name="year" placeholder="Year" value="<?= e($filters['year']) ?>"></div>
-<div class="col-md-1"><input class="form-control" name="month" placeholder="Month" value="<?= e($filters['month']) ?>"></div>
-<div class="col-md-2"><select class="form-select" name="assigned_to"><option value="">Assigned To</option><?php foreach($users as $u): ?><option value="<?= $u['id'] ?>" <?= $filters['assigned_to']==$u['id']?'selected':'' ?>><?= e($u['full_name']) ?></option><?php endforeach; ?></select></div>
-<div class="col-md-2"><select class="form-select" name="contractor_id"><option value="">Contractor</option><?php foreach($contractors as $c): ?><option value="<?= $c['id'] ?>" <?= $filters['contractor_id']==$c['id']?'selected':'' ?>><?= e($c['contractor_name']) ?></option><?php endforeach; ?></select></div>
-<div class="col-md-2"><select class="form-select" name="po_status_id"><option value="">PO Status</option><?php foreach($statuses as $s): ?><option value="<?= $s['id'] ?>" <?= $filters['po_status_id']==$s['id']?'selected':'' ?>><?= e($s['status_name']) ?></option><?php endforeach; ?></select></div>
-<div class="col-md-2"><select class="form-select" name="type_id"><option value="">Type</option><?php foreach($types as $t): ?><option value="<?= $t['id'] ?>" <?= $filters['type_id']==$t['id']?'selected':'' ?>><?= e($t['type_name']) ?></option><?php endforeach; ?></select></div>
-<div class="col-md-2"><input class="form-control" name="pr_no" placeholder="PR No." value="<?= e($filters['pr_no']) ?>"></div>
-<div class="col-md-2"><input class="form-control" name="po_no" placeholder="PO No." value="<?= e($filters['po_no']) ?>"></div>
-<div class="col-md-2"><input type="date" class="form-control" name="date_from" value="<?= e($filters['date_from']) ?>"></div>
-<div class="col-md-2"><input type="date" class="form-control" name="date_to" value="<?= e($filters['date_to']) ?>"></div>
-<div class="col-md-4"><input class="form-control" name="search" placeholder="Search" value="<?= e($filters['search']) ?>"></div>
-<div class="col-md-2 d-flex gap-2"><button class="btn btn-primary w-100">Filter</button><a class="btn btn-outline-secondary w-100" href="index.php">Reset</a></div>
+<div class="col-md-2"><label class="form-label">Year</label><select class="form-select multi-select" name="year[]" multiple><?php foreach($years as $y): ?><option value="<?= $y['y'] ?>" <?= selected_multi($filters['year'], $y['y']) ?>><?= $y['y'] ?></option><?php endforeach; ?></select></div>
+<div class="col-md-2"><label class="form-label">Month</label><select class="form-select multi-select" name="month[]" multiple><?php foreach($months as $m): $ml=date('M', mktime(0,0,0,$m['m'],1)); ?><option value="<?= $m['m'] ?>" <?= selected_multi($filters['month'], $m['m']) ?>><?= $ml ?></option><?php endforeach; ?></select></div>
+<div class="col-md-2"><label class="form-label">Assigned To</label><select class="form-select multi-select" name="assigned_to[]" multiple><?php foreach($users as $u): ?><option value="<?= $u['id'] ?>" <?= selected_multi($filters['assigned_to'], $u['id']) ?>><?= e($u['full_name']) ?></option><?php endforeach; ?></select></div>
+<div class="col-md-2"><label class="form-label">Contractor</label><select class="form-select multi-select" name="contractor_id[]" multiple><?php foreach($contractors as $c): ?><option value="<?= $c['id'] ?>" <?= selected_multi($filters['contractor_id'], $c['id']) ?>><?= e($c['contractor_name']) ?></option><?php endforeach; ?></select></div>
+<div class="col-md-2"><label class="form-label">PO Status</label><select class="form-select multi-select" name="po_status_id[]" multiple><?php foreach($statuses as $s): ?><option value="<?= $s['id'] ?>" <?= selected_multi($filters['po_status_id'], $s['id']) ?>><?= e($s['status_name']) ?></option><?php endforeach; ?></select></div>
+<div class="col-md-2"><label class="form-label">Type</label><select class="form-select multi-select" name="type_id[]" multiple><?php foreach($types as $t): ?><option value="<?= $t['id'] ?>" <?= selected_multi($filters['type_id'], $t['id']) ?>><?= e($t['type_name']) ?></option><?php endforeach; ?></select></div>
+<div class="col-md-2"><label class="form-label">PR No.</label><input class="form-control" name="pr_no" value="<?= e($filters['pr_no']) ?>"></div>
+<div class="col-md-2"><label class="form-label">PO No.</label><input class="form-control" name="po_no" value="<?= e($filters['po_no']) ?>"></div>
+<div class="col-md-2"><label class="form-label">Start Date</label><input type="date" class="form-control" name="date_from" value="<?= e($filters['date_from']) ?>"></div>
+<div class="col-md-2"><label class="form-label">End Date</label><input type="date" class="form-control" name="date_to" value="<?= e($filters['date_to']) ?>"></div>
+<div class="col-md-4"><label class="form-label">Search</label><input class="form-control" name="search" value="<?= e($filters['search']) ?>" placeholder="Search PR/PO/description..."></div>
+<div class="col-md-2 d-flex gap-2 align-items-end"><button class="btn btn-primary w-100">Filter</button><a class="btn btn-outline-secondary w-100" href="index.php">Reset</a></div>
 </form>
 </div>
 

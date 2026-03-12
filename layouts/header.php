@@ -14,10 +14,27 @@
 <nav class="navbar navbar-expand-lg topbar shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand fw-semibold" href="/Codex/dashboard/index.php"><i class="bi bi-speedometer2 me-2"></i><?= e(app_setting('app_name', $env['app_name'])) ?></a>
-        <div class="ms-auto d-flex align-items-center gap-2 text-on-dark small">
-            <span class="d-none d-md-inline"><i class="bi bi-person-circle me-1"></i><?= e(user()['full_name']) ?></span>
-            <span class="badge rounded-pill bg-light text-dark"><?= e(user()['role_name']) ?></span>
-            <a class="btn btn-sm btn-outline-light" href="/Codex/auth/logout.php" title="Logout"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+        <div class="ms-auto dropdown">
+            <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle"></i>
+                <span class="d-none d-md-inline"><?= e(user()['full_name']) ?></span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end profile-dropdown p-0 overflow-hidden">
+                <div class="p-3 border-bottom bg-light-subtle">
+                    <div class="d-flex align-items-start gap-2">
+                        <div class="avatar-circle"><i class="bi bi-person"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark"><?= e(user()['full_name']) ?></div>
+                            <div class="small text-muted-custom"><?= e(user()['role_name']) ?></div>
+                        </div>
+                    </div>
+                    <div class="small mt-2"><i class="bi bi-envelope me-1"></i><?= e(user()['email'] ?? 'Not set') ?></div>
+                    <div class="small"><i class="bi bi-briefcase me-1"></i>Designation: <?= e(user()['designation'] ?? 'Not provided') ?></div>
+                    <div class="small"><i class="bi bi-telephone me-1"></i>Phone: <?= e(user()['phone'] ?? 'Not provided') ?></div>
+                </div>
+                <a class="dropdown-item py-2" href="/Codex/settings/profile.php"><i class="bi bi-person-gear me-2"></i>Profile</a>
+                <a class="dropdown-item py-2 text-danger" href="/Codex/auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+            </div>
         </div>
     </div>
 </nav>

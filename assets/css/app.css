@@ -97,3 +97,7 @@ small, .form-text, .text-muted-custom { color: var(--warm-grey) !important; font
 .auth-link:hover { color: #c55600; text-decoration: underline; }
 .auth-input-group .btn { border-color: #e8dccb; }
 .auth-btn { border-radius: 10px; padding: .62rem .9rem; }
+
+.profile-dropdown { min-width: 300px; border: 1px solid #eadfcf; border-radius: 12px; }
+.avatar-circle { width: 42px; height: 42px; border-radius: 50%; background: #fff; border:1px solid #eadfcf; display:flex; align-items:center; justify-content:center; color: var(--asteco-orange); }
+.multi-select { min-height: 98px; }

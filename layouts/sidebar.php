@@ -10,8 +10,6 @@
             <li class="nav-item"><a class="nav-link" href="/Codex/master/index.php"><i class="bi bi-diagram-3 me-2"></i>Master Data</a></li>
             <li class="nav-item"><a class="nav-link" href="/Codex/settings/index.php"><i class="bi bi-gear me-2"></i>Settings</a></li>
         <?php endif; ?>
-        <li class="nav-item"><a class="nav-link" href="/Codex/settings/profile.php"><i class="bi bi-person me-2"></i>Profile</a></li>
-        <li class="nav-item mt-2"><a class="nav-link logout-link" href="/Codex/auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
     </ul>
 </div>
 <div class="col-lg-10 col-md-9 p-4 content-wrap">

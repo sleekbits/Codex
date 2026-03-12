@@ -35,8 +35,16 @@ ob_start();
   <div class="col-md-7"><div class="card p-3"><h6>Top 10 Contractors by Amount (AED)</h6><canvas id="contractorValueChart"></canvas></div></div>
 </div>
 <script>
-new Chart(document.getElementById('typeChart'),{type:'pie',data:{labels:<?= json_encode(array_column($typeData,'type_name')) ?>,datasets:[{data:<?= json_encode(array_map('intval',array_column($typeData,'total'))) ?>,backgroundColor:['#C9A0C0','#FED34C','#CDA78E','#72B096','#78C6E0','#EF6A00','#D4BE97','#6F635F']}]},options:{plugins:{legend:{position:'bottom'}}}});
-new Chart(document.getElementById('contractorValueChart'),{type:'bar',data:{labels:<?= json_encode(array_column($contractors,'contractor_name')) ?>,datasets:[{label:'AED',data:<?= json_encode(array_map('floatval',array_column($contractors,'total_amount'))) ?>,backgroundColor:['#72B096','#78C6E0','#CDA78E','#C9A0C0','#FED34C','#EF6A00','#D4BE97','#6F635F','#3D3936','#24272C']}]},options:{plugins:{legend:{display:false}}}});
+new Chart(document.getElementById('typeChart'),{
+  type:'pie',
+  data:{labels:<?= json_encode(array_column($typeData,'type_name')) ?>,datasets:[{data:<?= json_encode(array_map('intval',array_column($typeData,'total'))) ?>,backgroundColor:['#C9A0C0','#FED34C','#CDA78E','#72B096','#78C6E0','#EF6A00','#D4BE97','#6F635F','#24272C','#EEE6DA']}]},
+  options:{responsive:true, plugins:{legend:{position:'bottom', labels:{boxWidth:12, color:'#3D3936', font:{family:'Tahoma'}}}, tooltip:{callbacks:{label:(ctx)=>`${ctx.label}: ${ctx.formattedValue}`}}}, layout:{padding:8}}
+});
+new Chart(document.getElementById('contractorValueChart'),{
+  type:'bar',
+  data:{labels:<?= json_encode(array_column($contractors,'contractor_name')) ?>,datasets:[{label:'AED',data:<?= json_encode(array_map('floatval',array_column($contractors,'total_amount'))) ?>,backgroundColor:['#72B096','#78C6E0','#CDA78E','#C9A0C0','#FED34C','#EF6A00','#D4BE97','#6F635F','#3D3936','#24272C'], borderRadius:6}]},
+  options:{responsive:true, plugins:{legend:{display:false}, tooltip:{callbacks:{label:(ctx)=>`AED ${Number(ctx.raw).toLocaleString()}`}}}, scales:{x:{ticks:{color:'#3D3936', maxRotation:35, minRotation:20}}, y:{ticks:{color:'#3D3936', callback:(v)=>'AED '+Number(v).toLocaleString()}}}, layout:{padding:8}}
+});
 </script>
 <?php
 $html=ob_get_clean();
