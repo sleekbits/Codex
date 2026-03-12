@@ -14,9 +14,10 @@
 <nav class="navbar navbar-expand-lg topbar shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand fw-semibold" href="/Codex/dashboard/index.php"><i class="bi bi-speedometer2 me-2"></i><?= e(app_setting('app_name', $env['app_name'])) ?></a>
-        <div class="ms-auto d-flex align-items-center gap-2 text-white-50 small">
-            <i class="bi bi-person-circle"></i> <?= e(user()['full_name']) ?>
+        <div class="ms-auto d-flex align-items-center gap-2 text-on-dark small">
+            <span class="d-none d-md-inline"><i class="bi bi-person-circle me-1"></i><?= e(user()['full_name']) ?></span>
             <span class="badge rounded-pill bg-light text-dark"><?= e(user()['role_name']) ?></span>
+            <a class="btn btn-sm btn-outline-light" href="/Codex/auth/logout.php" title="Logout"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
         </div>
     </div>
 </nav>
