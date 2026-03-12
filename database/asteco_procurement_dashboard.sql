@@ -49,7 +49,7 @@ CREATE TABLE tracking_records (
   id INT AUTO_INCREMENT PRIMARY KEY,
   s_no INT NULL,
   pr_receival_date DATE NOT NULL,
-  pr_no VARCHAR(100) NOT NULL UNIQUE,
+  pr_no VARCHAR(100) NOT NULL,
   assigned_to_user_id INT NOT NULL,
   brief_description TEXT NOT NULL,
   wo_dwo_vo_ref VARCHAR(120) NULL,

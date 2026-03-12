@@ -115,3 +115,25 @@ function tracking_where_sql(array $filters, array &$params): string
 
     return ' WHERE ' . implode(' AND ', $where);
 }
+
+
+function format_date(?string $date): string
+{
+    if (!$date) {
+        return '-';
+    }
+    $ts = strtotime($date);
+    return $ts ? date('d-M-Y', $ts) : '-';
+}
+
+function status_badge_class(string $status): string
+{
+    return match ($status) {
+        'Released' => 'bg-success-subtle text-success-emphasis border border-success-subtle',
+        'Rejected' => 'bg-danger-subtle text-danger-emphasis border border-danger-subtle',
+        'Pending with Procurement' => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+        'Pending with Business Unit' => 'bg-info-subtle text-info-emphasis border border-info-subtle',
+        'Deleted' => 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle',
+        default => 'bg-light text-dark border'
+    };
+}

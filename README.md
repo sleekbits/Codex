@@ -1,37 +1,37 @@
 # Asteco Procurement Dashboard
 
-Traditional PHP + MySQL dashboard app for PR/PO/Contract tracking.
+Modernized traditional PHP + MySQL dashboard app for PR/PO/Contract tracking.
 
 ## Stack
 - Core PHP 8+
-- MySQL (phpMyAdmin-ready SQL)
-- Bootstrap 5 + jQuery + AJAX-ready pages
+- MySQL (phpMyAdmin-ready SQL + migration script)
+- Bootstrap 5 + jQuery + DataTables
 - Chart.js
 - PhpSpreadsheet-ready export/import hooks
 
-## Modules
-- Authentication (login/logout/forgot password)
-- Role-based access (Admin, Manager, Viewer)
-- Dashboard KPIs + charts
-- Tracking CRUD with soft delete
-- Import (CSV now, XLSX/XLS when PhpSpreadsheet installed)
-- Export (CSV + XLSX when PhpSpreadsheet available)
-- User/Role/Master Data/App Settings management
-- Activity logging
+## Key Updated Features
+- Asteco branded UI theme and polished responsive admin layout
+- Dashboard slicers (Year/Month/Type), AJAX chart refresh, enhanced KPI highlights
+- Pie chart by Type and Top 10 Contractor value bar chart
+- Tracking page advanced filters, status badges, icon actions, DD-MMM-YYYY dates
+- Bulk row select + bulk soft delete (Admin)
+- Duplicate indicators for PR No. and PO No.
+- Export page with granular filters (year/month/assigned/contractor/status/type/PR/PO/date range/status groups)
+- User management modernization with edit/delete/reset-password actions
+- Profile page modernization with improved layout and password section
 
 ## Setup (XAMPP/WAMP/LAMP)
 1. Copy project to web root (e.g. `htdocs/Codex`).
-2. Create database in phpMyAdmin: `asteco_procurement_dashboard`.
+2. Create database in phpMyAdmin.
 3. Import `database/asteco_procurement_dashboard.sql`.
-4. Update DB credentials in `config/config.php`.
-5. (Optional for XLSX features) run composer:
+4. For existing deployments, run `database/migrations_20260312.sql`.
+5. Update DB credentials only in `config/config.php`.
+6. (Optional for XLSX features) install PhpSpreadsheet:
    ```bash
    composer require phpoffice/phpspreadsheet
    ```
-6. Open: `http://localhost/Codex/`
+7. Open: `http://localhost/Codex/`
 
 ## Default Login
 - Username: `admin`
 - Password: `password123`
-
-> The SQL seed includes 5 users, required PO statuses/types, 10 contractors, and 120 sample tracking records.

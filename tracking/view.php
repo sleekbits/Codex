@@ -15,6 +15,8 @@ if (!$row) { echo '<div class="alert alert-danger">Record not found</div>'; requ
 ?>
 <h3>Record Details</h3>
 <table class="table table-bordered">
-<?php foreach ($row as $k => $v): ?><tr><th><?= e($k) ?></th><td><?= e((string)$v) ?></td></tr><?php endforeach; ?>
+<?php foreach ($row as $k => $v): ?>
+<?php if (in_array($k, ['pr_receival_date','po_release_date','created_at','updated_at']) && $v): $v = format_date((string)$v); endif; ?>
+<tr><th><?= e($k) ?></th><td><?= e((string)$v) ?></td></tr><?php endforeach; ?>
 </table>
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

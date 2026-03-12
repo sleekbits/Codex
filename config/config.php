@@ -6,10 +6,10 @@ if (session_status() === PHP_SESSION_NONE) {
 date_default_timezone_set('Asia/Dubai');
 
 $env = [
-    'db_host' => '127.0.0.1',
-    'db_name' => 'asteco_procurement_dashboard',
-    'db_user' => 'root',
-    'db_pass' => '',
+    'db_host' => 'sql104.ezyro.com',
+    'db_name' => 'ezyro_41363280_codex',
+    'db_user' => 'ezyro_41363280',
+    'db_pass' => 'baf55bc17e1',
     'app_name' => 'Asteco Procurement Dashboard',
     'base_url' => '/Codex'
 ];
