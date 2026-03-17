@@ -1,0 +1,2 @@
+s_no,pr_receival_date,pr_no,assigned_to,brief_description,wo_dwo_vo_ref,amount_aed,contract_reference,contractor_name,po_no,po_status,po_release_date,remarks,type
+1,2025-01-15,PR-2025-0001,Buyer,MEP Works,WO-1001,15000.00,CTR-100,ABC Contractors,PO-2025-0001,Released,2025-01-20,Sample,CAPEX

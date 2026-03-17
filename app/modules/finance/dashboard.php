@@ -1,0 +1,7 @@
+<?php
+$cards=['committed'=>db()->query('SELECT IFNULL(SUM(po_committed_amount),0) v FROM commitments')->fetch()['v'],'released'=>db()->query('SELECT IFNULL(SUM(released_amount),0) v FROM commitments')->fetch()['v'],'pending'=>db()->query('SELECT IFNULL(SUM(invoice_amount),0) v FROM invoices WHERE payment_status!="Paid"')->fetch()['v'],'pending_count'=>db()->query('SELECT COUNT(*) v FROM invoices WHERE payment_status!="Paid"')->fetch()['v']];
+$monthly=db()->query('SELECT DATE_FORMAT(invoice_date, "%Y-%m") m, SUM(invoice_amount) a FROM invoices GROUP BY DATE_FORMAT(invoice_date, "%Y-%m") ORDER BY m')->fetchAll();
+?>
+<div class="row g-3 mb-3"><div class="col-md-3"><div class="card p-3"><small>Total Committed</small><h5>AED <?=number_format((float)$cards['committed'],2)?></h5></div></div><div class="col-md-3"><div class="card p-3"><small>Total Released</small><h5>AED <?=number_format((float)$cards['released'],2)?></h5></div></div><div class="col-md-3"><div class="card p-3"><small>Pending Payment Amount</small><h5>AED <?=number_format((float)$cards['pending'],2)?></h5></div></div><div class="col-md-3"><div class="card p-3"><small>Pending Invoice Count</small><h5><?=e($cards['pending_count'])?></h5></div></div></div>
+<div class="card p-3"><h6>Invoice Amount by Month</h6><canvas id="fin"></canvas></div>
+<script>new Chart(document.getElementById('fin'),{type:'line',data:{labels:<?=json_encode(array_column($monthly,'m'))?>,datasets:[{label:'Amount',data:<?=json_encode(array_map('floatval',array_column($monthly,'a')))?>,borderColor:'#EF6A00'}]}});</script>
