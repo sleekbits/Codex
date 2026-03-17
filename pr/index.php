@@ -60,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $wf = workflow_start_transaction('PR', 'PR', $headerId, $prNo, [
         'amount' => $total,
         'type' => $_POST['pr_type'] ?? '',
-        'department' => trim($_POST['department'] ?? ''),
-        'business_unit' => trim($_POST['business_unit'] ?? '')
+        'department' => $departmentName,
+        'business_unit' => $businessUnitName
       ], (int)user()['id']);
       if ($wf['ok']) {
         $status = $wf['status'];
