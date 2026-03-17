@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS ezyro_41363280_codex;
 USE ezyro_41363280_codex;
 
-DROP TABLE IF EXISTS poa_hierarchy, doa_hierarchy, role_permissions, activity_logs, export_logs, import_logs, tracking_records, app_settings, contractors, po_statuses, types, users, roles;
+DROP TABLE IF EXISTS suppliers, poa_hierarchy, doa_hierarchy, role_permissions, activity_logs, export_logs, import_logs, tracking_records, app_settings, contractors, po_statuses, types, users, roles;
 
 CREATE TABLE roles (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -121,9 +121,11 @@ CREATE TABLE doa_hierarchy (
   type VARCHAR(120) NOT NULL,
   threshold_from DECIMAL(14,2) NOT NULL DEFAULT 0,
   threshold_to DECIMAL(14,2) NOT NULL DEFAULT 0,
-  approval_level INT NOT NULL DEFAULT 1,
+  stage_name VARCHAR(120) NOT NULL DEFAULT 'Stage',
+  stage_type VARCHAR(30) NOT NULL DEFAULT 'approval',
+  stage_sequence INT NOT NULL DEFAULT 1,
   approver_role_id INT NOT NULL,
-  approval_order INT NOT NULL DEFAULT 1,
+  parallel_group_id INT NOT NULL DEFAULT 0,
   status TINYINT(1) NOT NULL DEFAULT 1,
   remarks TEXT NULL,
   created_at DATETIME NULL,
@@ -137,14 +139,34 @@ CREATE TABLE poa_hierarchy (
   type VARCHAR(120) NOT NULL,
   threshold_from DECIMAL(14,2) NOT NULL DEFAULT 0,
   threshold_to DECIMAL(14,2) NOT NULL DEFAULT 0,
-  signature_level INT NOT NULL DEFAULT 1,
+  stage_name VARCHAR(120) NOT NULL DEFAULT 'Stage',
+  stage_type VARCHAR(30) NOT NULL DEFAULT 'approval',
+  stage_sequence INT NOT NULL DEFAULT 1,
   approver_role_id INT NOT NULL,
-  signature_order INT NOT NULL DEFAULT 1,
+  parallel_group_id INT NOT NULL DEFAULT 0,
   status TINYINT(1) NOT NULL DEFAULT 1,
   remarks TEXT NULL,
   created_at DATETIME NULL,
   updated_at DATETIME NULL,
   CONSTRAINT fk_poa_role FOREIGN KEY (approver_role_id) REFERENCES roles(id)
+);
+
+CREATE TABLE suppliers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  supplier_code VARCHAR(80) NOT NULL UNIQUE,
+  supplier_legal_name VARCHAR(180) NOT NULL,
+  supplier_license_number VARCHAR(120) NULL,
+  supplier_email VARCHAR(140) NULL,
+  supplier_phone VARCHAR(40) NULL,
+  supplier_mobile VARCHAR(40) NULL,
+  supplier_address TEXT NULL,
+  supplier_vat_number VARCHAR(80) NULL,
+  status TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_by INT NULL,
+  updated_by INT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL
 );
 
 CREATE TABLE activity_logs (

@@ -33,8 +33,8 @@ ob_start(); ?>
 <?php $kpiHtml=ob_get_clean();
 ob_start(); ?>
 <div class="row g-3">
-  <div class="col-12"><div class="card p-3"><h6>Pie Graph for Type</h6><canvas id="typeChart"></canvas></div></div>
-  <div class="col-12"><div class="card p-3"><h6>Top 10 Contractors by Amount (AED)</h6><canvas id="contractorValueChart"></canvas></div></div>
+  <div class="col-md-6"><div class="card p-3"><h6>Pie Graph for Type</h6><canvas id="typeChart"></canvas></div></div>
+  <div class="col-md-6"><div class="card p-3"><h6>Top 10 Contractors by Amount (AED)</h6><canvas id="contractorValueChart"></canvas></div></div>
 </div>
 <script>
 new Chart(document.getElementById('typeChart'),{type:'pie',data:{labels:<?= json_encode(array_column($typeData,'type_name')) ?>,datasets:[{data:<?= json_encode(array_map('intval',array_column($typeData,'total'))) ?>,backgroundColor:['#C9A0C0','#FED34C','#CDA78E','#72B096','#78C6E0','#EF6A00','#D4BE97','#6F635F','#24272C','#EEE6DA']}]},options:{responsive:true,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:(ctx)=>`${ctx.label}: ${ctx.formattedValue}`}}}}});
