@@ -40,3 +40,12 @@ $(function(){
     }, 'json');
   }
 });
+
+$(function(){
+  $('.sidebar .submenu-collapse').on('show.bs.collapse', function(){
+    $(this).closest('.sidebar-group-item').addClass('is-open');
+  });
+  $('.sidebar .submenu-collapse').on('hide.bs.collapse', function(){
+    $(this).closest('.sidebar-group-item').removeClass('is-open');
+  });
+});
