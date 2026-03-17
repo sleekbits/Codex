@@ -1,76 +1,58 @@
 # Asteco Procurement ERP (Core PHP)
 
-Complete ERP-style Procurement Management Web Application built using **Core PHP + MySQL + Bootstrap 5 + jQuery + Chart.js** with modular procurement, workflow, finance, and administration sections.
+Deployment-hardened Core PHP procurement ERP for subfolder hosting (`/Codex`) with centralized base URL/path configuration, secure session handling, and MySQL configuration via environment variables.
 
-## Stack
-- Core PHP (no heavy framework)
-- MySQL / phpMyAdmin
-- Bootstrap 5, HTML5, CSS3, JavaScript, jQuery
-- Chart.js for dashboard charts
-- PhpSpreadsheet-ready import/export hooks
+## Production Deployment (Shared Hosting)
 
-## Database
-- **New DB Name:** `ezyro_41363280_codex`
-- SQL schema + seed data file: `sql/schema_and_seed.sql`
+### 1) Upload paths
+Upload this repo so these paths exist on hosting:
+- `/Codex/index.php`
+- `/Codex/app/...`
+- `/Codex/sql/schema_and_seed.sql`
+- `/Codex/templates/...`
 
-## Modules Included
-- Authentication (login, forgot password, logout)
-- Dashboard analytics (KPI cards + charts + slicer tiles)
-- Tracking Database
-- Import / Export (template-driven)
-- Supplier / Vendor Management
-- PR creation
-- PO creation
-- PO print layout
-- Workflow (DOA / POA / logs)
-- Finance & Accounts (dashboard, invoices, GL/cost centers, commitments)
-- User / Profile / Roles / Master Data
-- Settings
-- Audit Trail
+### 2) Database import
+Import:
+- `sql/schema_and_seed.sql`
 
-## Sidebar Structure
-Implemented with Procurement, Vendors, Workflow, Finance, Administration, and My Account pathways in left navigation and top-right profile/logout dropdown.
+Database name used:
+- `ezyro_41363280_codex`
 
-## Setup
-1. Copy project to web root (e.g. `htdocs/Codex/app`).
-2. Create database by importing:
-   - `sql/schema_and_seed.sql`
-3. Update DB credentials in:
-   - `app/config/config.php`
-4. Open in browser:
-   - `http://localhost/Codex/app/login.php`
+### 3) Configure runtime values
+Set hosting environment variables (preferred):
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, `DB_CHARSET`
+- `APP_BASE_URL` (example: `https://sleekbits.unaux.com/Codex`)
+- `APP_BASE_PATH` (example: `/Codex`)
+- `APP_ENV=production`
+- `APP_DEBUG=0`
+
+If env vars are not available in hosting panel, edit `app/config/config.php` defaults.
+
+### 4) Access URLs
+- Entry URL: `https://sleekbits.unaux.com/Codex`
+- Login URL: `https://sleekbits.unaux.com/Codex/app/login.php`
 
 ## Default Credentials
-- **Username:** `admin`
-- **Password:** `Admin@123`
-- **Email login:** `admin@asteco.local`
+- Username: `admin`
+- Password: `Admin@123`
 
-## Sample Data Coverage
-Seed includes:
-- 14 procurement/management roles and users
-- permission matrix
-- 120 tracking records (including duplicate PR/PO examples)
-- 22 suppliers
-- 12 PR headers + PR items
-- 12 PO headers + PO items
-- 10+ DOA rules + POA rules
-- workflow transactions for approved/rejected/returned/delegated/reassigned/sign-on-behalf scenarios
-- finance records (commitments, invoices, payments, budgets)
+## Key fixes applied for deployment
+- Base URL and base path helpers added so links/assets/forms/redirects work under `/Codex` subfolder.
+- Session cookie path scoped to deployment path (prevents login loop/logout anomalies).
+- Database connection now supports host/port/env config and graceful production-safe error output.
+- Router hardened against invalid module path traversal.
+- Root index entry-point added (`/Codex/index.php`) for direct domain-subfolder access.
+- Import template links fixed to resolve from app pages to `/Codex/templates/...`.
 
-## Notes on Permissions
-- Role/permission tables are normalized (`roles`, `permissions`, `role_permissions`)
-- Module-level actions supported: View/Add/Edit/Delete/Submit/Approve/Import/Export/Manage/Reset Password/Delegate/Reassign/Sign on Behalf
-
-## Notes on Workflow Engine
-- Reusable hierarchy by document type, threshold, department, business unit
-- Stage types: Endorsement, Approval, Parallel Approval
-- Transaction and step tables support comments, status changes, history, and auditability
-
-## Notes on Print PO & Finance
-- PO print page available at `index.php?module=po/print&id={id}` with print-friendly document style
-- Finance dashboards summarize commitments, released spend, pending invoices, and monthly trend visualization
-
-## Import Templates
-- `templates/tracking_import_template.csv`
-- `templates/suppliers_import_template.csv`
-
+## Modules
+- Authentication
+- Dashboard
+- Tracking
+- Import/Export
+- Vendors
+- PR / PO / PO Print
+- Workflow (DOA/POA/logs)
+- Finance
+- Administration
+- Settings
+- Audit Trail

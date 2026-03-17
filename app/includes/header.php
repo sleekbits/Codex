@@ -7,7 +7,7 @@
     <title><?= e(app_setting('app_name', $config['app_name'])) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="<?= e(app_url('assets/css/app.css')) ?>">
 </head>
 <body>
 <div class="d-flex" id="wrapper">
@@ -20,8 +20,8 @@
                     <?= e($_SESSION['user']['name']) ?>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="index.php?module=admin/profile"><i class="bi bi-person"></i> Profile</a></li>
-                    <li><a class="dropdown-item" href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                    <li><a class="dropdown-item" href="<?= e(app_url('index.php?module=admin/profile')) ?>"><i class="bi bi-person"></i> Profile</a></li>
+                    <li><a class="dropdown-item" href="<?= e(app_url('logout.php')) ?>"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
                 </ul>
             </div>
         </nav>
