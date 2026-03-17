@@ -1,2 +1,56 @@
-# Codex
-Codex
+# Asteco Procurement Dashboard
+
+Modernized traditional PHP + MySQL dashboard app for PR/PO/Contract tracking.
+
+## Stack
+- Core PHP 8+
+- MySQL (phpMyAdmin-ready SQL + migration script)
+- Bootstrap 5 + jQuery + DataTables
+- Chart.js
+- PhpSpreadsheet-ready export/import hooks
+
+## Key Updated Features
+- Asteco branded UI theme and polished responsive admin layout
+- Dashboard slicers (Year/Month/Type), AJAX chart refresh, enhanced KPI highlights
+- Pie chart by Type and Top 10 Contractor value bar chart
+- Tracking page advanced filters, status badges, icon actions, DD-MMM-YYYY dates
+- Bulk row select + bulk soft delete (Admin)
+- Duplicate indicators for PR No. and PO No.
+- Export page with granular filters (year/month/assigned/contractor/status/type/PR/PO/date range/status groups)
+- User management modernization with edit/delete/reset-password actions
+- Profile page modernization with improved layout and password section
+- New Workflow Hierarchy engine with configurable stages (endorsement/approval/parallel), threshold/type/department/BU rules, and runtime approval inbox with audit trail
+
+## Setup (XAMPP/WAMP/LAMP)
+1. Copy project to web root (e.g. `htdocs/Codex`).
+2. Create database in phpMyAdmin.
+3. Import `database/ezyro_41363280_codex.sql` (fresh full setup with schema + seed data).
+4. For existing deployments only, run `database/migrations_20260312.sql`.
+5. Update DB credentials only in `config/config.php`.
+6. (Optional for XLSX features) install PhpSpreadsheet:
+   ```bash
+   composer require phpoffice/phpspreadsheet
+   ```
+7. Open: `http://localhost/Codex/`
+
+## Default Login
+- Username: `admin`
+- Password: `password123`
+
+
+## Templates
+- Tracking import template: `database/sample_tracking_import_template.csv`
+- Supplier import template: `database/sample_supplier_import_template.csv`
+
+## ERP Unification Refactor Notes
+- Added normalized shared master tables: `departments`, `business_units`, `cost_centers`, `currencies`, `purchasing_groups`.
+- PR/PO headers now support relational IDs (`*_id`) for type, department, BU, purchasing group, currency.
+- PO now supports source linkage back to PR using `source_pr_header_id`.
+- Tracking can now optionally link to PR/PO/Supplier records via foreign keys (`pr_header_id`, `po_header_id`, `supplier_id`).
+- Added finance integration tables: `finance_ap_invoices` and `finance_payments` linked to PO.
+- Added unified analytics view `vw_erp_document_facts` used by Dashboard so KPIs/charts come from integrated PR/PO/Tracking facts instead of isolated tracking-only logic.
+- Added Finance module page (`/finance/index.php`) to show PO vs invoice vs payment rollups.
+
+### Legacy/Duplicate Structures
+- Existing `doa_hierarchy` and `poa_hierarchy` are preserved for backward compatibility.
+- Canonical workflow runtime is now `workflow_hierarchy_*`, `workflow_transactions`, `workflow_transaction_steps`, and `workflow_audit_logs`.
