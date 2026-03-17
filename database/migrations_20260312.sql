@@ -197,3 +197,113 @@ CREATE TABLE IF NOT EXISTS po_items (
   updated_at DATETIME NULL,
   CONSTRAINT fk_po_item_header FOREIGN KEY (po_header_id) REFERENCES po_headers(id) ON DELETE CASCADE
 );
+
+-- 8) Workflow engine foundation for PR/PO/future document approvals
+ALTER TABLE po_headers
+  ADD COLUMN IF NOT EXISTS department VARCHAR(120) NULL AFTER vendor_id,
+  ADD COLUMN IF NOT EXISTS business_unit VARCHAR(120) NULL AFTER department;
+
+CREATE TABLE IF NOT EXISTS workflow_hierarchy_headers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_name VARCHAR(180) NOT NULL,
+  document_category VARCHAR(120) NOT NULL,
+  applies_to_module VARCHAR(80) NOT NULL DEFAULT 'ALL',
+  type_mode ENUM('all_types','selected_types','grouped_types') NOT NULL DEFAULT 'all_types',
+  threshold_from DECIMAL(14,2) NOT NULL DEFAULT 0,
+  threshold_to DECIMAL(14,2) NOT NULL DEFAULT 999999999,
+  department VARCHAR(120) NULL,
+  business_unit VARCHAR(120) NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_by INT NULL,
+  updated_by INT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS workflow_hierarchy_types (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_header_id INT NOT NULL,
+  type_name VARCHAR(120) NOT NULL,
+  type_group VARCHAR(120) NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_wh_type_header FOREIGN KEY (hierarchy_header_id) REFERENCES workflow_hierarchy_headers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS workflow_hierarchy_stages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_header_id INT NOT NULL,
+  stage_name VARCHAR(150) NOT NULL,
+  stage_no INT NOT NULL,
+  stage_type VARCHAR(50) NOT NULL,
+  approval_mode ENUM('sequential','parallel') NOT NULL DEFAULT 'sequential',
+  role_id INT NULL,
+  user_id INT NULL,
+  parallel_rule VARCHAR(50) NULL,
+  allow_delegate TINYINT(1) NOT NULL DEFAULT 0,
+  allow_sign_on_behalf TINYINT(1) NOT NULL DEFAULT 0,
+  is_mandatory TINYINT(1) NOT NULL DEFAULT 1,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_wh_stage_header FOREIGN KEY (hierarchy_header_id) REFERENCES workflow_hierarchy_headers(id) ON DELETE CASCADE,
+  CONSTRAINT fk_wh_stage_role FOREIGN KEY (role_id) REFERENCES roles(id),
+  CONSTRAINT fk_wh_stage_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS workflow_transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  document_type VARCHAR(120) NOT NULL,
+  document_id INT NOT NULL,
+  document_number VARCHAR(120) NOT NULL,
+  hierarchy_header_id INT NOT NULL,
+  current_stage_no INT NULL,
+  current_status VARCHAR(80) NOT NULL DEFAULT 'Submitted',
+  created_by INT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_wt_header FOREIGN KEY (hierarchy_header_id) REFERENCES workflow_hierarchy_headers(id)
+);
+
+CREATE TABLE IF NOT EXISTS workflow_transaction_steps (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  workflow_transaction_id INT NOT NULL,
+  stage_no INT NOT NULL,
+  stage_name VARCHAR(150) NOT NULL,
+  stage_type VARCHAR(50) NOT NULL,
+  approver_role_id INT NULL,
+  approver_user_id INT NULL,
+  assigned_user_id INT NULL,
+  action_status VARCHAR(60) NOT NULL DEFAULT 'Queued',
+  action_date DATETIME NULL,
+  comments TEXT NULL,
+  rejection_reason TEXT NULL,
+  return_reason TEXT NULL,
+  delegated_to_user_id INT NULL,
+  reassigned_by INT NULL,
+  signed_on_behalf_by INT NULL,
+  allow_delegate TINYINT(1) NOT NULL DEFAULT 0,
+  allow_sign_on_behalf TINYINT(1) NOT NULL DEFAULT 0,
+  is_mandatory TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_wts_tx FOREIGN KEY (workflow_transaction_id) REFERENCES workflow_transactions(id) ON DELETE CASCADE,
+  CONSTRAINT fk_wts_assigned FOREIGN KEY (assigned_user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS workflow_audit_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  workflow_transaction_id INT NOT NULL,
+  document_type VARCHAR(120) NOT NULL,
+  document_id INT NOT NULL,
+  action_type VARCHAR(80) NOT NULL,
+  action_by INT NULL,
+  action_role VARCHAR(120) NULL,
+  action_to INT NULL,
+  comments TEXT NULL,
+  metadata_json JSON NULL,
+  created_at DATETIME NULL,
+  CONSTRAINT fk_wal_tx FOREIGN KEY (workflow_transaction_id) REFERENCES workflow_transactions(id) ON DELETE CASCADE
+);

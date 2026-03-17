@@ -19,6 +19,7 @@ Modernized traditional PHP + MySQL dashboard app for PR/PO/Contract tracking.
 - Export page with granular filters (year/month/assigned/contractor/status/type/PR/PO/date range/status groups)
 - User management modernization with edit/delete/reset-password actions
 - Profile page modernization with improved layout and password section
+- New Workflow Hierarchy engine with configurable stages (endorsement/approval/parallel), threshold/type/department/BU rules, and runtime approval inbox with audit trail
 
 ## Setup (XAMPP/WAMP/LAMP)
 1. Copy project to web root (e.g. `htdocs/Codex`).

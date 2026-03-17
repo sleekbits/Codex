@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../layouts/sidebar.php';
 require_permission('pr_add');
+require_once __DIR__ . '/../includes/workflow_engine.php';
 
 $users = $pdo->query("SELECT id, full_name FROM users WHERE is_active=1 ORDER BY full_name")->fetchAll();
 $types = $pdo->query("SELECT id, type_name FROM types ORDER BY type_name")->fetchAll();
@@ -10,7 +11,9 @@ $statusOptions=['Draft','Submitted','Under Endorsement','Under Approval','Approv
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $items = json_decode($_POST['items_json'] ?? '[]', true);
     if (!is_array($items)) $items = [];
-    $status = $_POST['action_mode'] === 'submit' ? 'Submitted' : 'Draft';
+    $isSubmit = ($_POST['action_mode'] ?? '') === 'submit';
+    if ($isSubmit && !has_permission('pr_submit')) { $_SESSION['flash_error'] = 'You are not allowed to submit PR.'; header('Location: index.php'); exit; }
+    $status = $isSubmit ? 'Submitted' : 'Draft';
     if (count($items) === 0) {
         $_SESSION['flash_error'] = 'At least one PR item is required.';
         header('Location: index.php'); exit;
@@ -33,6 +36,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $lineTotal=((float)$it['quantity']*(float)$it['estimated_price']);
       $q->execute([$headerId,$itemNo,$it['material_service_code'],$it['short_description'],$it['detailed_description'],(float)$it['quantity'],$it['uom'],(float)$it['estimated_price'],$lineTotal,$it['delivery_date']?:null,$it['plant_location'],$it['cost_center'],$it['gl_account'],$it['wbs_project_code'],$it['account_assignment_category'],$it['purchasing_group'],null,$status,$it['remarks']]);
       $itemNo += 10;
+    }
+    if ($isSubmit) {
+      $wf = workflow_start_transaction('PR', 'PR', $headerId, $prNo, [
+        'amount' => $total,
+        'type' => $_POST['pr_type'] ?? '',
+        'department' => trim($_POST['department'] ?? ''),
+        'business_unit' => trim($_POST['business_unit'] ?? '')
+      ], (int)user()['id']);
+      if ($wf['ok']) {
+        $status = $wf['status'];
+        $pdo->prepare('UPDATE pr_headers SET status=?, updated_at=NOW() WHERE id=?')->execute([$status, $headerId]);
+      } else {
+        $pdo->prepare("UPDATE pr_headers SET status='Draft', updated_at=NOW() WHERE id=?")->execute([$headerId]);
+        $status = 'Draft';
+        $_SESSION['flash_error'] = $wf['message'];
+      }
     }
     $_SESSION['flash_success']="PR {$prNo} saved as {$status}.";
     header('Location: index.php'); exit;

@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS ezyro_41363280_codex;
 USE ezyro_41363280_codex;
 
-DROP TABLE IF EXISTS po_items, po_headers, pr_items, pr_headers, suppliers, poa_hierarchy, doa_hierarchy, role_permissions, activity_logs, export_logs, import_logs, tracking_records, app_settings, contractors, po_statuses, types, users, roles;
+DROP TABLE IF EXISTS workflow_audit_logs, workflow_transaction_steps, workflow_transactions, workflow_hierarchy_stages, workflow_hierarchy_types, workflow_hierarchy_headers, po_items, po_headers, pr_items, pr_headers, suppliers, poa_hierarchy, doa_hierarchy, role_permissions, activity_logs, export_logs, import_logs, tracking_records, app_settings, contractors, po_statuses, types, users, roles;
 
 CREATE TABLE roles (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -225,6 +225,8 @@ CREATE TABLE po_headers (
   po_date DATE NOT NULL,
   po_type VARCHAR(120) NULL,
   vendor_id INT NOT NULL,
+  department VARCHAR(120) NULL,
+  business_unit VARCHAR(120) NULL,
   company_code VARCHAR(50) NULL,
   purchasing_organization VARCHAR(120) NULL,
   purchasing_group VARCHAR(120) NULL,
@@ -271,6 +273,112 @@ CREATE TABLE po_items (
   created_at DATETIME NULL,
   updated_at DATETIME NULL,
   CONSTRAINT fk_po_item_header FOREIGN KEY (po_header_id) REFERENCES po_headers(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE workflow_hierarchy_headers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_name VARCHAR(180) NOT NULL,
+  document_category VARCHAR(120) NOT NULL,
+  applies_to_module VARCHAR(80) NOT NULL DEFAULT 'ALL',
+  type_mode ENUM('all_types','selected_types','grouped_types') NOT NULL DEFAULT 'all_types',
+  threshold_from DECIMAL(14,2) NOT NULL DEFAULT 0,
+  threshold_to DECIMAL(14,2) NOT NULL DEFAULT 999999999,
+  department VARCHAR(120) NULL,
+  business_unit VARCHAR(120) NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_by INT NULL,
+  updated_by INT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE workflow_hierarchy_types (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_header_id INT NOT NULL,
+  type_name VARCHAR(120) NOT NULL,
+  type_group VARCHAR(120) NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_wh_type_header FOREIGN KEY (hierarchy_header_id) REFERENCES workflow_hierarchy_headers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE workflow_hierarchy_stages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_header_id INT NOT NULL,
+  stage_name VARCHAR(150) NOT NULL,
+  stage_no INT NOT NULL,
+  stage_type VARCHAR(50) NOT NULL,
+  approval_mode ENUM('sequential','parallel') NOT NULL DEFAULT 'sequential',
+  role_id INT NULL,
+  user_id INT NULL,
+  parallel_rule VARCHAR(50) NULL,
+  allow_delegate TINYINT(1) NOT NULL DEFAULT 0,
+  allow_sign_on_behalf TINYINT(1) NOT NULL DEFAULT 0,
+  is_mandatory TINYINT(1) NOT NULL DEFAULT 1,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_wh_stage_header FOREIGN KEY (hierarchy_header_id) REFERENCES workflow_hierarchy_headers(id) ON DELETE CASCADE,
+  CONSTRAINT fk_wh_stage_role FOREIGN KEY (role_id) REFERENCES roles(id),
+  CONSTRAINT fk_wh_stage_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE workflow_transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  document_type VARCHAR(120) NOT NULL,
+  document_id INT NOT NULL,
+  document_number VARCHAR(120) NOT NULL,
+  hierarchy_header_id INT NOT NULL,
+  current_stage_no INT NULL,
+  current_status VARCHAR(80) NOT NULL DEFAULT 'Submitted',
+  created_by INT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_wt_header FOREIGN KEY (hierarchy_header_id) REFERENCES workflow_hierarchy_headers(id)
+);
+
+CREATE TABLE workflow_transaction_steps (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  workflow_transaction_id INT NOT NULL,
+  stage_no INT NOT NULL,
+  stage_name VARCHAR(150) NOT NULL,
+  stage_type VARCHAR(50) NOT NULL,
+  approver_role_id INT NULL,
+  approver_user_id INT NULL,
+  assigned_user_id INT NULL,
+  action_status VARCHAR(60) NOT NULL DEFAULT 'Queued',
+  action_date DATETIME NULL,
+  comments TEXT NULL,
+  rejection_reason TEXT NULL,
+  return_reason TEXT NULL,
+  delegated_to_user_id INT NULL,
+  reassigned_by INT NULL,
+  signed_on_behalf_by INT NULL,
+  allow_delegate TINYINT(1) NOT NULL DEFAULT 0,
+  allow_sign_on_behalf TINYINT(1) NOT NULL DEFAULT 0,
+  is_mandatory TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_wts_tx FOREIGN KEY (workflow_transaction_id) REFERENCES workflow_transactions(id) ON DELETE CASCADE,
+  CONSTRAINT fk_wts_assigned FOREIGN KEY (assigned_user_id) REFERENCES users(id)
+);
+
+CREATE TABLE workflow_audit_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  workflow_transaction_id INT NOT NULL,
+  document_type VARCHAR(120) NOT NULL,
+  document_id INT NOT NULL,
+  action_type VARCHAR(80) NOT NULL,
+  action_by INT NULL,
+  action_role VARCHAR(120) NULL,
+  action_to INT NULL,
+  comments TEXT NULL,
+  metadata_json JSON NULL,
+  created_at DATETIME NULL,
+  CONSTRAINT fk_wal_tx FOREIGN KEY (workflow_transaction_id) REFERENCES workflow_transactions(id) ON DELETE CASCADE
 );
 
 
@@ -324,6 +432,27 @@ INSERT INTO app_settings(setting_key, setting_value, updated_at) VALUES
 ('app_name','Asteco Procurement Dashboard',NOW()),
 ('currency_label','AED',NOW()),
 ('records_per_page','25',NOW());
+
+INSERT INTO workflow_hierarchy_headers(hierarchy_name,document_category,applies_to_module,type_mode,threshold_from,threshold_to,department,business_unit,is_active,remarks,created_by,updated_by,created_at,updated_at) VALUES
+('PR Consultancy Corporate <=500K','PR','PR','selected_types',0,500000,'Procurement','Corporate',1,'Sample seeded hierarchy',1,1,NOW(),NOW()),
+('PO Emergency Ops >500K','PO','PO','selected_types',500000,999999999,'Procurement','Operations',1,'Sample seeded hierarchy',1,1,NOW(),NOW()),
+('ARR Competitive Generic','ARR (Competitive)','ALL','all_types',0,999999999,'','',1,'Sample for future module',1,1,NOW(),NOW());
+
+INSERT INTO workflow_hierarchy_types(hierarchy_header_id,type_name,type_group,created_at,updated_at)
+SELECT id,'Consultancy',NULL,NOW(),NOW() FROM workflow_hierarchy_headers WHERE hierarchy_name='PR Consultancy Corporate <=500K';
+INSERT INTO workflow_hierarchy_types(hierarchy_header_id,type_name,type_group,created_at,updated_at)
+SELECT id,'Emergency',NULL,NOW(),NOW() FROM workflow_hierarchy_headers WHERE hierarchy_name='PO Emergency Ops >500K';
+
+INSERT INTO workflow_hierarchy_stages(hierarchy_header_id,stage_name,stage_no,stage_type,approval_mode,role_id,user_id,parallel_rule,allow_delegate,allow_sign_on_behalf,is_mandatory,is_active,remarks,created_at,updated_at)
+SELECT h.id,'Endorsement 1 - Manager Procurement',1,'Endorsement','sequential',r.id,NULL,NULL,1,0,1,1,NULL,NOW(),NOW()
+FROM workflow_hierarchy_headers h JOIN roles r ON r.role_name='Manager Procurement' WHERE h.hierarchy_name='PR Consultancy Corporate <=500K';
+INSERT INTO workflow_hierarchy_stages(hierarchy_header_id,stage_name,stage_no,stage_type,approval_mode,role_id,user_id,parallel_rule,allow_delegate,allow_sign_on_behalf,is_mandatory,is_active,remarks,created_at,updated_at)
+SELECT h.id,'Endorsement 2 - Director Procurement',2,'Endorsement','sequential',r.id,NULL,NULL,1,0,1,1,NULL,NOW(),NOW()
+FROM workflow_hierarchy_headers h JOIN roles r ON r.role_name='Director Procurement' WHERE h.hierarchy_name='PR Consultancy Corporate <=500K';
+INSERT INTO workflow_hierarchy_stages(hierarchy_header_id,stage_name,stage_no,stage_type,approval_mode,role_id,user_id,parallel_rule,allow_delegate,allow_sign_on_behalf,is_mandatory,is_active,remarks,created_at,updated_at)
+SELECT h.id,'Final Approval - CPO',3,'Approval','sequential',r.id,NULL,NULL,1,1,1,1,NULL,NOW(),NOW()
+FROM workflow_hierarchy_headers h JOIN roles r ON r.role_name='Chief Procurement Officer (CPO)' WHERE h.hierarchy_name='PR Consultancy Corporate <=500K';
+
 
 INSERT INTO tracking_records (s_no, pr_receival_date, pr_no, assigned_to_user_id, brief_description, wo_dwo_vo_ref, amount_aed, contract_reference, contractor_id, po_no, po_status_id, po_release_date, remarks, type_id, created_by, updated_by, created_at, updated_at)
 SELECT n,

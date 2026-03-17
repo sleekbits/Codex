@@ -11,6 +11,12 @@
         <li class="nav-item"><a class="nav-link" href="/Codex/imports/index.php"><i class="bi bi-upload me-2"></i>Import</a></li>
         <li class="nav-item"><a class="nav-link" href="/Codex/exports/index.php"><i class="bi bi-download me-2"></i>Export</a></li>
         <li class="nav-item"><a class="nav-link" href="/Codex/suppliers/index.php"><i class="bi bi-building me-2"></i>Supplier/Vendor</a></li>
+        <?php if (has_permission('workflow_hierarchy_view')): ?>
+            <li class="nav-item"><a class="nav-link" href="/Codex/workflow/index.php"><i class="bi bi-diagram-2 me-2"></i>Approval Hierarchy</a></li>
+        <?php endif; ?>
+        <?php if (has_permission('workflow_action_view')): ?>
+            <li class="nav-item"><a class="nav-link" href="/Codex/workflow/inbox.php"><i class="bi bi-inboxes me-2"></i>Workflow Inbox</a></li>
+        <?php endif; ?>
         <?php if (has_role(['Admin'])): ?>
             <li class="nav-item"><a class="nav-link" href="/Codex/users/index.php"><i class="bi bi-people me-2"></i>Users</a></li>
             <li class="nav-item"><a class="nav-link" href="/Codex/roles/index.php"><i class="bi bi-shield-lock me-2"></i>Roles</a></li>
