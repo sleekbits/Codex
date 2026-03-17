@@ -1,0 +1,2 @@
+supplier_code,legal_name,license_number,email,phone,mobile,address,vat_number,status,remarks
+SUP900,Template Supplier,LIC-900,template@supplier.com,+971400000,+971500000,Template Address,VAT900,Active,Seed template row

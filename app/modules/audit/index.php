@@ -1,0 +1,2 @@
+<?php $rows = db()->query('SELECT a.*, p.full_name FROM audit_logs a LEFT JOIN user_profiles p ON p.user_id=a.user_id ORDER BY a.created_at DESC LIMIT 500')->fetchAll(); ?>
+<div class="card p-3"><h5>Audit Trail</h5><table class="table table-sm"><tr><th>Date</th><th>User</th><th>Action</th><th>Module</th><th>Description</th></tr><?php foreach($rows as $r):?><tr><td><?=e($r['created_at'])?></td><td><?=e($r['full_name'])?></td><td><?=e($r['action'])?></td><td><?=e($r['module_name'])?></td><td><?=e($r['description'])?></td></tr><?php endforeach;?></table></div>

@@ -1,0 +1,2 @@
+<?php $roles=db()->query('SELECT * FROM roles')->fetchAll(); $perms=db()->query('SELECT * FROM permissions LIMIT 200')->fetchAll(); ?>
+<div class="row g-3"><div class="col-md-4"><div class="card p-3"><h5>Roles</h5><ul><?php foreach($roles as $r):?><li><?=e($r['role_name'])?></li><?php endforeach;?></ul></div></div><div class="col-md-8"><div class="card p-3"><h5>Permissions</h5><div class="row"><?php foreach($perms as $p):?><div class="col-md-4"><small><?=e($p['module_name'])?> - <?=e($p['action_name'])?></small></div><?php endforeach;?></div></div></div></div>

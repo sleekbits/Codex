@@ -1,0 +1,2 @@
+<?php $rows = db()->query('SELECT * FROM poa_hierarchy_headers ORDER BY id DESC')->fetchAll(); ?>
+<div class="card p-3"><h5>Power of Attorney / POA</h5><table class="table table-sm"><tr><th>Document Type</th><th>Signatory Role</th><th>Threshold Min</th><th>Threshold Max</th></tr><?php foreach($rows as $r):?><tr><td><?=e($r['document_type'])?></td><td><?=e($r['signatory_role'])?></td><td><?=e($r['threshold_min'])?></td><td><?=e($r['threshold_max'])?></td></tr><?php endforeach;?></table></div>

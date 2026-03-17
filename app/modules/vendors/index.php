@@ -1,0 +1,9 @@
+<?php
+if ($_SERVER['REQUEST_METHOD']==='POST') {
+    db()->prepare('INSERT INTO suppliers (supplier_code, legal_name, license_number, email, phone, mobile, address, vat_number, status, remarks, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,NOW())')
+        ->execute([$_POST['supplier_code'],$_POST['legal_name'],$_POST['license_number'],$_POST['email'],$_POST['phone'],$_POST['mobile'],$_POST['address'],$_POST['vat_number'],$_POST['status'],$_POST['remarks']]);
+    log_audit('create','vendors','Created supplier');
+}
+$rows = db()->query('SELECT * FROM suppliers ORDER BY id DESC LIMIT 200')->fetchAll();
+?>
+<div class="row g-3"><div class="col-md-4"><div class="card p-3"><h5>Add Supplier</h5><form method="post"><input name="supplier_code" class="form-control mb-2" placeholder="Supplier Code" required><input name="legal_name" class="form-control mb-2" placeholder="Legal Name" required><input name="license_number" class="form-control mb-2" placeholder="License"><input name="email" class="form-control mb-2" placeholder="Email"><input name="phone" class="form-control mb-2" placeholder="Phone"><input name="mobile" class="form-control mb-2" placeholder="Mobile"><textarea name="address" class="form-control mb-2" placeholder="Address"></textarea><input name="vat_number" class="form-control mb-2" placeholder="VAT"><select name="status" class="form-select mb-2"><option>Active</option><option>Inactive</option></select><textarea name="remarks" class="form-control mb-2" placeholder="Remarks"></textarea><button class="btn btn-warning w-100">Save</button></form></div></div><div class="col-md-8"><div class="card p-3"><h5>Supplier List</h5><table class="table table-sm"><tr><th>Code</th><th>Name</th><th>Email</th><th>Status</th></tr><?php foreach($rows as $r):?><tr><td><?=e($r['supplier_code'])?></td><td><?=e($r['legal_name'])?></td><td><?=e($r['email'])?></td><td><?=e($r['status'])?></td></tr><?php endforeach;?></table></div></div></div>

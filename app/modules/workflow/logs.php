@@ -1,0 +1,2 @@
+<?php $rows = db()->query('SELECT * FROM workflow_audit_logs ORDER BY created_at DESC LIMIT 200')->fetchAll(); ?>
+<div class="card p-3"><h5>Workflow History</h5><table class="table table-sm"><tr><th>Txn</th><th>Action</th><th>Actor</th><th>Comment</th><th>Date</th></tr><?php foreach($rows as $r):?><tr><td><?=e($r['transaction_id'])?></td><td><?=e($r['action'])?></td><td><?=e($r['actor_name'])?></td><td><?=e($r['comments'])?></td><td><?=e($r['created_at'])?></td></tr><?php endforeach;?></table></div>

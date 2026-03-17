@@ -1,0 +1,2 @@
+<?php $stmt=db()->prepare('SELECT p.*,u.email FROM user_profiles p JOIN users u ON u.id=p.user_id WHERE p.user_id=?');$stmt->execute([$_SESSION['user']['id']]);$p=$stmt->fetch(); ?>
+<div class="card p-3"><h5>My Profile</h5><p><strong>Name:</strong> <?=e($p['full_name'] ?? '')?></p><p><strong>Designation:</strong> <?=e($p['designation'] ?? '')?></p><p><strong>Email:</strong> <?=e($p['email'] ?? '')?></p><p><strong>Phone:</strong> <?=e($p['phone'] ?? '')?></p></div>

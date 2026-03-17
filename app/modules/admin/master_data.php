@@ -1,0 +1,2 @@
+<?php $types=db()->query('SELECT * FROM types')->fetchAll(); $statuses=db()->query('SELECT * FROM statuses')->fetchAll(); ?>
+<div class="row g-3"><div class="col-md-6"><div class="card p-3"><h5>Types</h5><ul><?php foreach($types as $t):?><li><?=e($t['type_name'])?></li><?php endforeach;?></ul></div></div><div class="col-md-6"><div class="card p-3"><h5>Statuses</h5><ul><?php foreach($statuses as $s):?><li><?=e($s['status_name'])?></li><?php endforeach;?></ul></div></div></div>
