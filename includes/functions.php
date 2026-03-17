@@ -56,6 +56,60 @@ function require_role(array $roles): void
     }
 }
 
+function role_permissions(): array
+{
+    static $cacheByRole = [];
+    $currentUser = user();
+    if (!$currentUser) {
+        return [];
+    }
+
+    $roleId = (int)($currentUser['role_id'] ?? 0);
+    if ($roleId <= 0) {
+        return [];
+    }
+
+    if (array_key_exists($roleId, $cacheByRole)) {
+        return $cacheByRole[$roleId];
+    }
+
+    global $pdo;
+    $stmt = $pdo->prepare('SELECT permission_key, is_allowed FROM role_permissions WHERE role_id=?');
+    $stmt->execute([$roleId]);
+
+    $permissions = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $permissions[$row['permission_key']] = (int)$row['is_allowed'] === 1;
+    }
+
+    $cacheByRole[$roleId] = $permissions;
+    return $permissions;
+}
+
+function has_permission(string $permissionKey): bool
+{
+    if (has_role(['Admin'])) {
+        return true;
+    }
+
+    $permissions = role_permissions();
+    if ($permissions === []) {
+        // Backward compatibility for environments that still rely on role-only access.
+        return can_manage();
+    }
+
+    return !empty($permissions[$permissionKey]);
+}
+
+function require_permission(string $permissionKey): void
+{
+    if (!has_permission($permissionKey)) {
+        $_SESSION['flash_error'] = 'You do not have permission to access this module.';
+        header('Location: /Codex/dashboard/index.php');
+        exit;
+    }
+}
+
 function flash(string $key): ?string
 {
     if (!isset($_SESSION[$key])) {

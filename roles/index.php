@@ -6,6 +6,8 @@ require_role(['Admin']);
 $permissionGroups = [
     'Dashboard' => ['dashboard_view'],
     'Tracking Database' => ['tracking_view','tracking_add','tracking_edit','tracking_delete','bulk_delete','tracking_filter','tracking_export'],
+    'PR Creation' => ['pr_view','pr_add','pr_edit','pr_delete','pr_submit','pr_export_print'],
+    'PO Creation' => ['po_view','po_add','po_edit','po_delete','po_submit','po_signature_access','po_export_print'],
     'Import' => ['import_view','import_access'],
     'Export' => ['export_view','export_access'],
     'Users' => ['user_management_view','users_add','users_edit','users_delete','users_reset_password'],

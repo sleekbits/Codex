@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS ezyro_41363280_codex;
 USE ezyro_41363280_codex;
 
-DROP TABLE IF EXISTS suppliers, poa_hierarchy, doa_hierarchy, role_permissions, activity_logs, export_logs, import_logs, tracking_records, app_settings, contractors, po_statuses, types, users, roles;
+DROP TABLE IF EXISTS po_items, po_headers, pr_items, pr_headers, suppliers, poa_hierarchy, doa_hierarchy, role_permissions, activity_logs, export_logs, import_logs, tracking_records, app_settings, contractors, po_statuses, types, users, roles;
 
 CREATE TABLE roles (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -168,6 +168,111 @@ CREATE TABLE suppliers (
   created_at DATETIME NULL,
   updated_at DATETIME NULL
 );
+
+CREATE TABLE pr_headers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  pr_number VARCHAR(80) NOT NULL UNIQUE,
+  pr_date DATE NOT NULL,
+  pr_type VARCHAR(120) NULL,
+  requestor_id INT NULL,
+  department VARCHAR(120) NULL,
+  business_unit VARCHAR(120) NULL,
+  company_code VARCHAR(50) NULL,
+  plant_location VARCHAR(120) NULL,
+  purchasing_group VARCHAR(120) NULL,
+  currency VARCHAR(20) NULL,
+  required_delivery_date DATE NULL,
+  priority VARCHAR(40) NULL,
+  status VARCHAR(60) NOT NULL DEFAULT 'Draft',
+  justification TEXT NULL,
+  remarks TEXT NULL,
+  total_amount DECIMAL(14,2) NOT NULL DEFAULT 0,
+  created_by INT NULL,
+  updated_by INT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE pr_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  pr_header_id INT NOT NULL,
+  item_no INT NOT NULL,
+  material_service_code VARCHAR(120) NULL,
+  short_description VARCHAR(255) NULL,
+  detailed_description TEXT NULL,
+  quantity DECIMAL(14,2) NOT NULL DEFAULT 0,
+  uom VARCHAR(30) NULL,
+  estimated_price DECIMAL(14,2) NOT NULL DEFAULT 0,
+  total_amount DECIMAL(14,2) NOT NULL DEFAULT 0,
+  delivery_date DATE NULL,
+  plant_location VARCHAR(120) NULL,
+  cost_center VARCHAR(120) NULL,
+  gl_account VARCHAR(120) NULL,
+  wbs_project_code VARCHAR(120) NULL,
+  account_assignment_category VARCHAR(80) NULL,
+  purchasing_group VARCHAR(120) NULL,
+  suggested_vendor_id INT NULL,
+  status VARCHAR(60) NULL,
+  remarks TEXT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_pr_item_header FOREIGN KEY (pr_header_id) REFERENCES pr_headers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE po_headers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  po_number VARCHAR(80) NOT NULL UNIQUE,
+  po_date DATE NOT NULL,
+  po_type VARCHAR(120) NULL,
+  vendor_id INT NOT NULL,
+  company_code VARCHAR(50) NULL,
+  purchasing_organization VARCHAR(120) NULL,
+  purchasing_group VARCHAR(120) NULL,
+  currency VARCHAR(20) NULL,
+  payment_terms VARCHAR(120) NULL,
+  delivery_terms VARCHAR(120) NULL,
+  incoterms VARCHAR(120) NULL,
+  contract_reference VARCHAR(120) NULL,
+  pr_reference VARCHAR(120) NULL,
+  quotation_reference VARCHAR(120) NULL,
+  tender_reference VARCHAR(120) NULL,
+  validity_date DATE NULL,
+  status VARCHAR(60) NOT NULL DEFAULT 'Draft',
+  remarks TEXT NULL,
+  total_amount DECIMAL(14,2) NOT NULL DEFAULT 0,
+  created_by INT NULL,
+  updated_by INT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_po_header_vendor FOREIGN KEY (vendor_id) REFERENCES suppliers(id)
+);
+
+CREATE TABLE po_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  po_header_id INT NOT NULL,
+  item_no INT NOT NULL,
+  material_service_code VARCHAR(120) NULL,
+  short_description VARCHAR(255) NULL,
+  detailed_description TEXT NULL,
+  quantity DECIMAL(14,2) NOT NULL DEFAULT 0,
+  uom VARCHAR(30) NULL,
+  unit_price DECIMAL(14,2) NOT NULL DEFAULT 0,
+  total_amount DECIMAL(14,2) NOT NULL DEFAULT 0,
+  delivery_date DATE NULL,
+  delivery_location VARCHAR(120) NULL,
+  account_assignment VARCHAR(120) NULL,
+  cost_center VARCHAR(120) NULL,
+  gl_account VARCHAR(120) NULL,
+  tax_code VARCHAR(40) NULL,
+  pr_reference_item VARCHAR(80) NULL,
+  contract_reference VARCHAR(120) NULL,
+  status VARCHAR(60) NULL,
+  remarks TEXT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_po_item_header FOREIGN KEY (po_header_id) REFERENCES po_headers(id) ON DELETE CASCADE
+);
+
 
 CREATE TABLE activity_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
