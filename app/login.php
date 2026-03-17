@@ -4,6 +4,7 @@ if (is_logged_in()) {
     redirect('index.php');
 }
 $error = null;
+$success = flash('success');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identity = trim($_POST['identity'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -29,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="d-flex align-items-center" style="min-height:100vh;background:#EEE6DA">
 <div class="container"><div class="row justify-content-center"><div class="col-md-5"><div class="card p-4">
 <h3 class="mb-3"><?= e(app_setting('app_name', 'Asteco Procurement ERP')) ?></h3>
+<?php if($success): ?><div class="alert alert-success"><?= e($success) ?></div><?php endif; ?>
 <?php if($error): ?><div class="alert alert-danger"><?= e($error) ?></div><?php endif; ?>
 <form method="post" action="<?= e(app_url('login.php')) ?>">
 <div class="mb-3"><label class="form-label">Username / Email</label><input class="form-control" name="identity" value="<?= e($_COOKIE['remember_identity'] ?? '') ?>" required></div>

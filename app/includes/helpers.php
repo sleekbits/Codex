@@ -94,3 +94,23 @@ function app_setting(string $key, ?string $default = null): ?string
     }
     return $cache[$key];
 }
+
+
+function send_email(string $to, string $subject, string $message): bool
+{
+    global $config;
+    $fromEmail = $config['mail']['from_email'] ?? 'no-reply@localhost';
+    $fromName = $config['mail']['from_name'] ?? 'Asteco Procurement ERP';
+    $headers = [
+        'MIME-Version: 1.0',
+        'Content-type: text/plain; charset=UTF-8',
+        'From: ' . $fromName . ' <' . $fromEmail . '>',
+    ];
+
+    return @mail($to, $subject, $message, implode("\r\n", $headers));
+}
+
+function generate_otp_code(): string
+{
+    return (string) random_int(100000, 999999);
+}

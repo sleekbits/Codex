@@ -48,6 +48,21 @@ CREATE TABLE audit_logs (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, action 
 CREATE TABLE import_logs (id INT AUTO_INCREMENT PRIMARY KEY, module_name VARCHAR(80), file_name VARCHAR(190), mode_used VARCHAR(30), rows_processed INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE export_logs (id INT AUTO_INCREMENT PRIMARY KEY, module_name VARCHAR(80), format VARCHAR(20), filters TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 
+CREATE TABLE password_reset_otps (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    attempts INT DEFAULT 0,
+    resend_count INT DEFAULT 0,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    INDEX idx_reset_email(email),
+    INDEX idx_reset_expiry(expires_at)
+);
+
 INSERT INTO roles(role_name) VALUES
 ('Admin'),('ERP/IT'),('CEO'),('CPO'),('Executive Director Procurement'),('Director Procurement'),('Associate Director Procurement'),('Senior Manager Procurement'),('Manager Procurement'),('Assistant Manager Procurement'),('Senior Buyer'),('Buyer'),('Senior Procurement Officer'),('Procurement Officer');
 
@@ -57,7 +72,7 @@ INSERT INTO role_permissions(role_id,permission_id)
 SELECT r.id,p.id FROM roles r JOIN permissions p ON (r.role_name='Admin' OR p.action_name IN ('View'));
 
 INSERT INTO users(role_id,username,email,password_hash,is_active) VALUES
-(1,'admin','admin@asteco.local','$2y$10$NtQmyjipYJg78Qv2go8Vn..9DIww8FcFPczSMGn6rPsxmvPKR62Dy',1),
+(1,'admin','admin@asteco.local','$2y$12$dsHsVId7jKSS2pNUVXN25.3X4hP0n1DYfg7UJAHnMFFSICaigIs9C',1),
 (2,'erpit','erpit@asteco.local','$2y$10$NtQmyjipYJg78Qv2go8Vn..9DIww8FcFPczSMGn6rPsxmvPKR62Dy',1),
 (3,'ceo','ceo@asteco.local','$2y$10$NtQmyjipYJg78Qv2go8Vn..9DIww8FcFPczSMGn6rPsxmvPKR62Dy',1),
 (4,'cpo','cpo@asteco.local','$2y$10$NtQmyjipYJg78Qv2go8Vn..9DIww8FcFPczSMGn6rPsxmvPKR62Dy',1),

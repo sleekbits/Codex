@@ -56,3 +56,12 @@ If env vars are not available in hosting panel, edit `app/config/config.php` def
 - Administration
 - Settings
 - Audit Trail
+
+
+## Auth hotfix for existing live DB
+If your DB is already created and admin login fails, run:
+- `sql/live_patch_auth.sql`
+
+This will:
+- create `password_reset_otps` table
+- reset admin password hash for `Admin@123`
