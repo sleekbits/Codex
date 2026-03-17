@@ -6,6 +6,10 @@ require_once __DIR__ . '/../includes/workflow_engine.php';
 
 $users = $pdo->query("SELECT id, full_name FROM users WHERE is_active=1 ORDER BY full_name")->fetchAll();
 $types = $pdo->query("SELECT id, type_name FROM types ORDER BY type_name")->fetchAll();
+$departments = $pdo->query("SELECT id, department_name FROM departments WHERE is_active=1 ORDER BY department_name")->fetchAll();
+$businessUnits = $pdo->query("SELECT id, business_unit_name FROM business_units WHERE is_active=1 ORDER BY business_unit_name")->fetchAll();
+$purchasingGroups = $pdo->query("SELECT id, group_code, group_name FROM purchasing_groups WHERE is_active=1 ORDER BY group_code")->fetchAll();
+$currencies = $pdo->query("SELECT id, currency_code FROM currencies WHERE is_active=1 ORDER BY currency_code")->fetchAll();
 $statusOptions=['Draft','Submitted','Under Endorsement','Under Approval','Approved','Rejected','Cancelled'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -21,13 +25,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $total = 0;
     foreach ($items as $it) { $total += ((float)$it['quantity'] * (float)$it['estimated_price']); }
 
+    $departmentId = (int)($_POST['department_id'] ?? 0);
+    $businessUnitId = (int)($_POST['business_unit_id'] ?? 0);
+    $purchasingGroupId = (int)($_POST['purchasing_group_id'] ?? 0);
+    $currencyId = (int)($_POST['currency_id'] ?? 0);
+    $typeId = (int)($_POST['pr_type_id'] ?? 0);
+
+    $departmentName = '';
+    if ($departmentId) { $st=$pdo->prepare('SELECT department_name FROM departments WHERE id=?'); $st->execute([$departmentId]); $departmentName=(string)($st->fetchColumn() ?: ''); }
+    $businessUnitName = '';
+    if ($businessUnitId) { $st=$pdo->prepare('SELECT business_unit_name FROM business_units WHERE id=?'); $st->execute([$businessUnitId]); $businessUnitName=(string)($st->fetchColumn() ?: ''); }
+    $purchasingGroupCode = '';
+    if ($purchasingGroupId) { $st=$pdo->prepare('SELECT group_code FROM purchasing_groups WHERE id=?'); $st->execute([$purchasingGroupId]); $purchasingGroupCode=(string)($st->fetchColumn() ?: ''); }
+    $currencyCode = '';
+    if ($currencyId) { $st=$pdo->prepare('SELECT currency_code FROM currencies WHERE id=?'); $st->execute([$currencyId]); $currencyCode=(string)($st->fetchColumn() ?: 'AED'); }
+
     $prefix='PR'.date('Ymd');
     $st=$pdo->prepare("SELECT COUNT(*) FROM pr_headers WHERE pr_number LIKE ?");$st->execute([$prefix.'%']);
     $seq=(int)$st->fetchColumn()+1;
     $prNo=$prefix.str_pad((string)$seq,4,'0',STR_PAD_LEFT);
 
-    $stmt=$pdo->prepare('INSERT INTO pr_headers (pr_number,pr_date,pr_type,requestor_id,department,business_unit,company_code,plant_location,purchasing_group,currency,required_delivery_date,priority,status,justification,remarks,total_amount,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
-    $stmt->execute([$prNo,$_POST['pr_date'],$_POST['pr_type'],(int)$_POST['requestor_id'],trim($_POST['department']),trim($_POST['business_unit']),trim($_POST['company_code']),trim($_POST['plant_location']),trim($_POST['purchasing_group']),trim($_POST['currency']),$_POST['required_delivery_date'] ?: null,trim($_POST['priority']),$status,trim($_POST['justification']),trim($_POST['remarks']),$total,user()['id'],user()['id']]);
+    $stmt=$pdo->prepare('INSERT INTO pr_headers (pr_number,pr_date,pr_type,pr_type_id,requestor_id,department,department_id,business_unit,business_unit_id,company_code,plant_location,purchasing_group,purchasing_group_id,currency,currency_id,required_delivery_date,priority,status,justification,remarks,total_amount,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
+    $stmt->execute([$prNo,$_POST['pr_date'],$_POST['pr_type'],$typeId,(int)$_POST['requestor_id'],$departmentName,$departmentId ?: null,$businessUnitName,$businessUnitId ?: null,trim($_POST['company_code']),trim($_POST['plant_location']),$purchasingGroupCode,$purchasingGroupId ?: null,$currencyCode,$currencyId ?: null,$_POST['required_delivery_date'] ?: null,trim($_POST['priority']),$status,trim($_POST['justification']),trim($_POST['remarks']),$total,user()['id'],user()['id']]);
     $headerId=(int)$pdo->lastInsertId();
 
     $itemNo=10;
@@ -63,14 +82,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <h6>Header Data</h6>
   <div class="row g-2">
     <div class="col-md-2"><label class="form-label">PR Date</label><input type="date" class="form-control" name="pr_date" value="<?= date('Y-m-d') ?>" required></div>
-    <div class="col-md-2"><label class="form-label">PR Type</label><select class="form-select" name="pr_type" required><?php foreach($types as $t): ?><option value="<?= e($t['type_name']) ?>"><?= e($t['type_name']) ?></option><?php endforeach; ?></select></div>
+    <div class="col-md-2"><label class="form-label">PR Type</label><select class="form-select" name="pr_type_id" required><?php foreach($types as $t): ?><option value="<?= $t['id'] ?>"><?= e($t['type_name']) ?></option><?php endforeach; ?></select><input type="hidden" name="pr_type" id="pr_type_text"></div>
     <div class="col-md-3"><label class="form-label">Requestor</label><select class="form-select" name="requestor_id" required><?php foreach($users as $u): ?><option value="<?= $u['id'] ?>" <?= $u['id']==user()['id']?'selected':'' ?>><?= e($u['full_name']) ?></option><?php endforeach; ?></select></div>
-    <div class="col-md-2"><label class="form-label">Department</label><input class="form-control" name="department"></div>
-    <div class="col-md-3"><label class="form-label">Business Unit</label><input class="form-control" name="business_unit"></div>
+    <div class="col-md-2"><label class="form-label">Department</label><select class="form-select" name="department_id"><option value="">Select</option><?php foreach($departments as $d): ?><option value="<?= $d['id'] ?>"><?= e($d['department_name']) ?></option><?php endforeach; ?></select></div>
+    <div class="col-md-3"><label class="form-label">Business Unit</label><select class="form-select" name="business_unit_id"><option value="">Select</option><?php foreach($businessUnits as $b): ?><option value="<?= $b['id'] ?>"><?= e($b['business_unit_name']) ?></option><?php endforeach; ?></select></div>
     <div class="col-md-2"><label class="form-label">Company Code</label><input class="form-control" name="company_code"></div>
     <div class="col-md-2"><label class="form-label">Plant/Location</label><input class="form-control" name="plant_location"></div>
-    <div class="col-md-2"><label class="form-label">Purchasing Group</label><input class="form-control" name="purchasing_group"></div>
-    <div class="col-md-2"><label class="form-label">Currency</label><input class="form-control" name="currency" value="AED"></div>
+    <div class="col-md-2"><label class="form-label">Purchasing Group</label><select class="form-select" name="purchasing_group_id"><option value="">Select</option><?php foreach($purchasingGroups as $g): ?><option value="<?= $g['id'] ?>"><?= e($g['group_code']) ?></option><?php endforeach; ?></select></div>
+    <div class="col-md-2"><label class="form-label">Currency</label><select class="form-select" name="currency_id"><?php foreach($currencies as $c): ?><option value="<?= $c['id'] ?>" <?= $c['currency_code']=='AED' ? "selected" : "" ?>><?= e($c['currency_code']) ?></option><?php endforeach; ?></select></div>
     <div class="col-md-2"><label class="form-label">Required Delivery Date</label><input type="date" class="form-control" name="required_delivery_date"></div>
     <div class="col-md-2"><label class="form-label">Priority</label><select class="form-select" name="priority"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
     <div class="col-md-3"><label class="form-label">Justification</label><input class="form-control" name="justification"></div>
@@ -129,5 +148,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   document.getElementById('prForm').addEventListener('submit',()=>{jsonInput.value=JSON.stringify(rows);});
   rows.push(newRow()); render();
 })();
+document.getElementById('prForm').addEventListener('submit',()=>{const typeSel=document.querySelector('[name="pr_type_id"]');const typeTxt=document.getElementById('pr_type_text'); if(typeSel&&typeTxt){typeTxt.value=typeSel.options[typeSel.selectedIndex]?.text||'';}});
 </script>
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

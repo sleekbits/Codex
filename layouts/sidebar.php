@@ -35,6 +35,7 @@ $dataItems = [
     ['href' => '/Codex/imports/index.php', 'icon' => 'bi-upload', 'label' => 'Import', 'show' => true],
     ['href' => '/Codex/exports/index.php', 'icon' => 'bi-download', 'label' => 'Export', 'show' => true],
     ['href' => '/Codex/suppliers/index.php', 'icon' => 'bi-building', 'label' => 'Supplier/Vendor', 'show' => true],
+    ['href' => '/Codex/finance/index.php', 'icon' => 'bi-cash-stack', 'label' => 'Finance', 'show' => has_permission('finance_view')],
     ['href' => '/Codex/master/index.php', 'icon' => 'bi-diagram-3', 'label' => 'Master Data', 'show' => has_role(['Admin'])],
 ];
 $menuGroups[] = ['id' => 'menu-dataops', 'icon' => 'bi-database-gear', 'label' => 'Data Operations', 'items' => $dataItems];

@@ -2,8 +2,8 @@
 require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../layouts/sidebar.php';
 
-$years = $pdo->query("SELECT DISTINCT YEAR(pr_receival_date) y FROM tracking_records WHERE deleted_at IS NULL ORDER BY y DESC")->fetchAll();
-$months = $pdo->query("SELECT DISTINCT MONTH(pr_receival_date) m FROM tracking_records WHERE deleted_at IS NULL ORDER BY m ASC")->fetchAll();
+$years = $pdo->query("SELECT DISTINCT YEAR(fact_date) y FROM vw_erp_document_facts ORDER BY y DESC")->fetchAll();
+$months = $pdo->query("SELECT DISTINCT MONTH(fact_date) m FROM vw_erp_document_facts ORDER BY m ASC")->fetchAll();
 $types = $pdo->query("SELECT id, type_name FROM types ORDER BY type_name")->fetchAll();
 $filters = query_filters();
 ?>

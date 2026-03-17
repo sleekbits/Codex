@@ -9,6 +9,7 @@ $permissionGroups = [
     'PR Creation' => ['pr_view','pr_add','pr_edit','pr_delete','pr_submit','pr_export_print'],
     'PO Creation' => ['po_view','po_add','po_edit','po_delete','po_submit','po_signature_access','po_export_print'],
     'Audit Trail' => ['logs_view'],
+    'Finance' => ['finance_view','finance_invoice_manage','finance_payment_manage'],
     'Workflow Hierarchy' => ['workflow_hierarchy_view','workflow_hierarchy_add','workflow_hierarchy_edit','workflow_hierarchy_delete','workflow_hierarchy_clone'],
     'Workflow Actions' => ['workflow_action_view','workflow_action_endorse','workflow_action_approve','workflow_action_reject','workflow_action_return','workflow_reassign','workflow_delegate','workflow_sign_on_behalf'],
     'Import' => ['import_view','import_access'],

@@ -6,6 +6,11 @@ require_once __DIR__ . '/../includes/workflow_engine.php';
 
 $types = $pdo->query("SELECT id, type_name FROM types ORDER BY type_name")->fetchAll();
 $vendors = $pdo->query("SELECT id, supplier_code, supplier_legal_name FROM suppliers WHERE status=1 ORDER BY supplier_legal_name")->fetchAll();
+$departments = $pdo->query("SELECT id, department_name FROM departments WHERE is_active=1 ORDER BY department_name")->fetchAll();
+$businessUnits = $pdo->query("SELECT id, business_unit_name FROM business_units WHERE is_active=1 ORDER BY business_unit_name")->fetchAll();
+$purchasingGroups = $pdo->query("SELECT id, group_code FROM purchasing_groups WHERE is_active=1 ORDER BY group_code")->fetchAll();
+$currencies = $pdo->query("SELECT id, currency_code FROM currencies WHERE is_active=1 ORDER BY currency_code")->fetchAll();
+$prRefs = $pdo->query("SELECT id, pr_number FROM pr_headers ORDER BY id DESC LIMIT 200")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $items = json_decode($_POST['items_json'] ?? '[]', true); if(!is_array($items)) $items=[];
@@ -16,12 +21,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $isSubmit ? 'Submitted' : 'Draft';
     $total=0; foreach($items as $it){$total+=((float)$it['quantity']*(float)$it['unit_price']);}
 
+    $departmentId = (int)($_POST['department_id'] ?? 0);
+    $businessUnitId = (int)($_POST['business_unit_id'] ?? 0);
+    $purchasingGroupId = (int)($_POST['purchasing_group_id'] ?? 0);
+    $currencyId = (int)($_POST['currency_id'] ?? 0);
+    $typeId = (int)($_POST['po_type_id'] ?? 0);
+    $sourcePrId = (int)($_POST['source_pr_header_id'] ?? 0);
+
+    $departmentName = '';
+    if ($departmentId) { $st=$pdo->prepare('SELECT department_name FROM departments WHERE id=?'); $st->execute([$departmentId]); $departmentName=(string)($st->fetchColumn() ?: ''); }
+    $businessUnitName = '';
+    if ($businessUnitId) { $st=$pdo->prepare('SELECT business_unit_name FROM business_units WHERE id=?'); $st->execute([$businessUnitId]); $businessUnitName=(string)($st->fetchColumn() ?: ''); }
+    $purchasingGroupCode = '';
+    if ($purchasingGroupId) { $st=$pdo->prepare('SELECT group_code FROM purchasing_groups WHERE id=?'); $st->execute([$purchasingGroupId]); $purchasingGroupCode=(string)($st->fetchColumn() ?: ''); }
+    $currencyCode = '';
+    if ($currencyId) { $st=$pdo->prepare('SELECT currency_code FROM currencies WHERE id=?'); $st->execute([$currencyId]); $currencyCode=(string)($st->fetchColumn() ?: 'AED'); }
+
     $prefix='PO'.date('Ymd');
     $st=$pdo->prepare("SELECT COUNT(*) FROM po_headers WHERE po_number LIKE ?");$st->execute([$prefix.'%']);
     $poNo=$prefix.str_pad((string)((int)$st->fetchColumn()+1),4,'0',STR_PAD_LEFT);
 
-    $h=$pdo->prepare('INSERT INTO po_headers (po_number,po_date,po_type,vendor_id,department,business_unit,company_code,purchasing_organization,purchasing_group,currency,payment_terms,delivery_terms,incoterms,contract_reference,pr_reference,quotation_reference,tender_reference,validity_date,status,remarks,total_amount,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
-    $h->execute([$poNo,$_POST['po_date'],$_POST['po_type'],(int)$_POST['vendor_id'],trim($_POST['department']),trim($_POST['business_unit']),trim($_POST['company_code']),trim($_POST['purchasing_organization']),trim($_POST['purchasing_group']),trim($_POST['currency']),trim($_POST['payment_terms']),trim($_POST['delivery_terms']),trim($_POST['incoterms']),trim($_POST['contract_reference']),trim($_POST['pr_reference']),trim($_POST['quotation_reference']),trim($_POST['tender_reference']),$_POST['validity_date']?:null,$status,trim($_POST['remarks']),$total,user()['id'],user()['id']]);
+    $h=$pdo->prepare('INSERT INTO po_headers (po_number,po_date,po_type,po_type_id,vendor_id,source_pr_header_id,department,department_id,business_unit,business_unit_id,company_code,purchasing_organization,purchasing_group,purchasing_group_id,currency,currency_id,payment_terms,delivery_terms,incoterms,contract_reference,pr_reference,quotation_reference,tender_reference,validity_date,status,remarks,total_amount,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
+    $h->execute([$poNo,$_POST['po_date'],$_POST['po_type'],$typeId,(int)$_POST['vendor_id'],$sourcePrId ?: null,$departmentName,$departmentId ?: null,$businessUnitName,$businessUnitId ?: null,trim($_POST['company_code']),trim($_POST['purchasing_organization']),$purchasingGroupCode,$purchasingGroupId ?: null,$currencyCode,$currencyId ?: null,trim($_POST['payment_terms']),trim($_POST['delivery_terms']),trim($_POST['incoterms']),trim($_POST['contract_reference']),trim($_POST['pr_reference']),trim($_POST['quotation_reference']),trim($_POST['tender_reference']),$_POST['validity_date']?:null,$status,trim($_POST['remarks']),$total,user()['id'],user()['id']]);
     $headerId=(int)$pdo->lastInsertId();
 
     $q=$pdo->prepare('INSERT INTO po_items (po_header_id,item_no,material_service_code,short_description,detailed_description,quantity,uom,unit_price,total_amount,delivery_date,delivery_location,account_assignment,cost_center,gl_account,tax_code,pr_reference_item,contract_reference,status,remarks,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
@@ -52,19 +73,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <form method="post" id="poForm">
 <div class="card p-3 mb-3"><h6>Header Data</h6><div class="row g-2">
   <div class="col-md-2"><label class="form-label">PO Date</label><input type="date" class="form-control" name="po_date" value="<?= date('Y-m-d') ?>" required></div>
-  <div class="col-md-2"><label class="form-label">PO Type</label><select class="form-select" name="po_type"><?php foreach($types as $t): ?><option value="<?= e($t['type_name']) ?>"><?= e($t['type_name']) ?></option><?php endforeach; ?></select></div>
+  <div class="col-md-2"><label class="form-label">PO Type</label><select class="form-select" name="po_type_id"><?php foreach($types as $t): ?><option value="<?= $t['id'] ?>"><?= e($t['type_name']) ?></option><?php endforeach; ?></select><input type="hidden" name="po_type" id="po_type_text"></div>
   <div class="col-md-4"><label class="form-label">Vendor/Supplier</label><select class="form-select" name="vendor_id" required><option value="">Select supplier</option><?php foreach($vendors as $v): ?><option value="<?= $v['id'] ?>"><?= e($v['supplier_code'].' - '.$v['supplier_legal_name']) ?></option><?php endforeach; ?></select></div>
-  <div class="col-md-2"><label class="form-label">Department</label><input class="form-control" name="department"></div>
-  <div class="col-md-2"><label class="form-label">Business Unit</label><input class="form-control" name="business_unit"></div>
+  <div class="col-md-2"><label class="form-label">Department</label><select class="form-select" name="department_id"><option value="">Select</option><?php foreach($departments as $d): ?><option value="<?= $d['id'] ?>"><?= e($d['department_name']) ?></option><?php endforeach; ?></select></div>
+  <div class="col-md-2"><label class="form-label">Business Unit</label><select class="form-select" name="business_unit_id"><option value="">Select</option><?php foreach($businessUnits as $b): ?><option value="<?= $b['id'] ?>"><?= e($b['business_unit_name']) ?></option><?php endforeach; ?></select></div>
   <div class="col-md-2"><label class="form-label">Company Code</label><input class="form-control" name="company_code"></div>
   <div class="col-md-2"><label class="form-label">Purchasing Org</label><input class="form-control" name="purchasing_organization"></div>
-  <div class="col-md-2"><label class="form-label">Purchasing Group</label><input class="form-control" name="purchasing_group"></div>
-  <div class="col-md-2"><label class="form-label">Currency</label><input class="form-control" name="currency" value="AED"></div>
+  <div class="col-md-2"><label class="form-label">Purchasing Group</label><select class="form-select" name="purchasing_group_id"><option value="">Select</option><?php foreach($purchasingGroups as $g): ?><option value="<?= $g['id'] ?>"><?= e($g['group_code']) ?></option><?php endforeach; ?></select></div>
+  <div class="col-md-2"><label class="form-label">Currency</label><select class="form-select" name="currency_id"><?php foreach($currencies as $c): ?><option value="<?= $c['id'] ?>" <?= $c['currency_code']=='AED' ? "selected" : "" ?>><?= e($c['currency_code']) ?></option><?php endforeach; ?></select></div>
   <div class="col-md-2"><label class="form-label">Payment Terms</label><input class="form-control" name="payment_terms"></div>
   <div class="col-md-2"><label class="form-label">Delivery Terms</label><input class="form-control" name="delivery_terms"></div>
   <div class="col-md-2"><label class="form-label">Incoterms</label><input class="form-control" name="incoterms"></div>
   <div class="col-md-2"><label class="form-label">Contract Ref.</label><input class="form-control" name="contract_reference"></div>
   <div class="col-md-2"><label class="form-label">PR Reference</label><input class="form-control" name="pr_reference"></div>
+  <div class="col-md-2"><label class="form-label">Source PR</label><select class="form-select" name="source_pr_header_id"><option value="">Select PR</option><?php foreach($prRefs as $r): ?><option value="<?= $r['id'] ?>"><?= e($r['pr_number']) ?></option><?php endforeach; ?></select></div>
   <div class="col-md-2"><label class="form-label">Quotation Ref.</label><input class="form-control" name="quotation_reference"></div>
   <div class="col-md-2"><label class="form-label">Tender Ref.</label><input class="form-control" name="tender_reference"></div>
   <div class="col-md-2"><label class="form-label">Validity Date</label><input type="date" class="form-control" name="validity_date"></div>
@@ -92,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   document.getElementById('addPoItem').addEventListener('click',()=>{rows.push(make());render();});
   tb.addEventListener('input',e=>{const i=e.target.dataset.i,k=e.target.dataset.k;if(i!==undefined&&k){rows[i][k]=e.target.value;render();}});
   tb.addEventListener('click',e=>{const d=e.target.dataset.del;if(d!==undefined){rows.splice(Number(d),1);render();}});
-  document.getElementById('poForm').addEventListener('submit',()=>{json.value=JSON.stringify(rows);});
+  document.getElementById('poForm').addEventListener('submit',()=>{json.value=JSON.stringify(rows);const typeSel=document.querySelector('[name="po_type_id"]');const typeTxt=document.getElementById('po_type_text');if(typeSel&&typeTxt){typeTxt.value=typeSel.options[typeSel.selectedIndex]?.text||'';}});
   rows.push(make()); render();
 })();
 </script>

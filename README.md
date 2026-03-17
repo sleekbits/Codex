@@ -41,3 +41,16 @@ Modernized traditional PHP + MySQL dashboard app for PR/PO/Contract tracking.
 ## Templates
 - Tracking import template: `database/sample_tracking_import_template.csv`
 - Supplier import template: `database/sample_supplier_import_template.csv`
+
+## ERP Unification Refactor Notes
+- Added normalized shared master tables: `departments`, `business_units`, `cost_centers`, `currencies`, `purchasing_groups`.
+- PR/PO headers now support relational IDs (`*_id`) for type, department, BU, purchasing group, currency.
+- PO now supports source linkage back to PR using `source_pr_header_id`.
+- Tracking can now optionally link to PR/PO/Supplier records via foreign keys (`pr_header_id`, `po_header_id`, `supplier_id`).
+- Added finance integration tables: `finance_ap_invoices` and `finance_payments` linked to PO.
+- Added unified analytics view `vw_erp_document_facts` used by Dashboard so KPIs/charts come from integrated PR/PO/Tracking facts instead of isolated tracking-only logic.
+- Added Finance module page (`/finance/index.php`) to show PO vs invoice vs payment rollups.
+
+### Legacy/Duplicate Structures
+- Existing `doa_hierarchy` and `poa_hierarchy` are preserved for backward compatibility.
+- Canonical workflow runtime is now `workflow_hierarchy_*`, `workflow_transactions`, `workflow_transaction_steps`, and `workflow_audit_logs`.
