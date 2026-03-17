@@ -24,8 +24,8 @@ Modernized traditional PHP + MySQL dashboard app for PR/PO/Contract tracking.
 ## Setup (XAMPP/WAMP/LAMP)
 1. Copy project to web root (e.g. `htdocs/Codex`).
 2. Create database in phpMyAdmin.
-3. Import `database/asteco_procurement_dashboard.sql`.
-4. For existing deployments, run `database/migrations_20260312.sql`.
+3. Import `database/ezyro_41363280_codex.sql` (fresh full setup with schema + seed data).
+4. For existing deployments only, run `database/migrations_20260312.sql`.
 5. Update DB credentials only in `config/config.php`.
 6. (Optional for XLSX features) install PhpSpreadsheet:
    ```bash
@@ -36,3 +36,8 @@ Modernized traditional PHP + MySQL dashboard app for PR/PO/Contract tracking.
 ## Default Login
 - Username: `admin`
 - Password: `password123`
+
+
+## Templates
+- Tracking import template: `database/sample_tracking_import_template.csv`
+- Supplier import template: `database/sample_supplier_import_template.csv`

@@ -10,5 +10,5 @@ require_role(['Admin', 'Manager']);
 <label class="form-check mb-2"><input type="checkbox" name="update_existing" value="1" class="form-check-input"> Update existing by PR No.</label>
 <button class="btn btn-primary">Import</button>
 </form>
-<a href="/Codex/database/sample_import_template.csv" class="btn btn-link mt-2">Download sample template</a>
+<a href="/Codex/database/sample_tracking_import_template.csv" class="btn btn-link mt-2">Download tracking import template</a>
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

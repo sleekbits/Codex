@@ -121,6 +121,7 @@ function workflow_start_transaction(string $documentCategory, string $module, in
     }
 
     workflow_log($transactionId, $documentCategory, $documentId, 'submit', $createdBy, null, 'Workflow initiated');
+    log_activity($createdBy, 'Workflow Submit', $documentCategory . ' #' . $documentNumber . ' submitted to workflow');
 
     return ['ok' => true, 'transaction_id' => $transactionId, 'status' => $initialStatus];
 }
@@ -188,6 +189,7 @@ function workflow_action_step(int $stepId, string $action, int $actorId, string 
         }
         $pdo->prepare('UPDATE workflow_transaction_steps SET delegated_to_user_id=?, assigned_user_id=?, updated_at=NOW() WHERE id=?')->execute([$targetUserId, $targetUserId, $stepId]);
         workflow_log((int)$step['tx_id'], $step['document_type'], (int)$step['document_id'], 'delegate', $actorId, $targetUserId, $comment, ['step_id' => $stepId]);
+        log_activity($actorId, 'Workflow Delegate', 'Delegated step #' . $stepId . ' to user #' . $targetUserId);
         return ['ok' => true, 'message' => 'Step delegated.'];
     }
 
@@ -197,6 +199,7 @@ function workflow_action_step(int $stepId, string $action, int $actorId, string 
         }
         $pdo->prepare('UPDATE workflow_transaction_steps SET reassigned_by=?, assigned_user_id=?, updated_at=NOW() WHERE id=?')->execute([$actorId, $targetUserId, $stepId]);
         workflow_log((int)$step['tx_id'], $step['document_type'], (int)$step['document_id'], 'reassign', $actorId, $targetUserId, $comment, ['step_id' => $stepId]);
+        log_activity($actorId, 'Workflow Reassign', 'Reassigned step #' . $stepId . ' to user #' . $targetUserId);
         return ['ok' => true, 'message' => 'Step reassigned.'];
     }
 
@@ -221,6 +224,7 @@ function workflow_action_step(int $stepId, string $action, int $actorId, string 
         $pdo->prepare("UPDATE workflow_transaction_steps SET action_status='Approved', action_date=NOW(), comments=?, signed_on_behalf_by=?, updated_at=NOW() WHERE id=?")
             ->execute([$comment ?: null, $isOwner ? null : $actorId, $stepId]);
         workflow_log((int)$step['tx_id'], $step['document_type'], (int)$step['document_id'], $action, $actorId, null, $comment, ['step_id' => $stepId]);
+        log_activity($actorId, 'Workflow ' . ucfirst($action), ucfirst($action) . ' on step #' . $stepId);
         workflow_next_stage((int)$step['tx_id']);
         return ['ok' => true, 'message' => ucfirst($action) . ' recorded.'];
     }
@@ -231,6 +235,7 @@ function workflow_action_step(int $stepId, string $action, int $actorId, string 
         $pdo->prepare("UPDATE workflow_transactions SET current_status='Rejected', updated_at=NOW() WHERE id=?")->execute([(int)$step['tx_id']]);
         workflow_sync_document_status($step['document_type'], (int)$step['document_id'], 'Rejected');
         workflow_log((int)$step['tx_id'], $step['document_type'], (int)$step['document_id'], 'reject', $actorId, null, $comment, ['step_id' => $stepId]);
+        log_activity($actorId, 'Workflow Reject', 'Rejected step #' . $stepId);
         return ['ok' => true, 'message' => 'Rejected and returned to creator.'];
     }
 
@@ -240,6 +245,7 @@ function workflow_action_step(int $stepId, string $action, int $actorId, string 
         $pdo->prepare("UPDATE workflow_transactions SET current_status='Returned for Correction', updated_at=NOW() WHERE id=?")->execute([(int)$step['tx_id']]);
         workflow_sync_document_status($step['document_type'], (int)$step['document_id'], 'Returned for Correction');
         workflow_log((int)$step['tx_id'], $step['document_type'], (int)$step['document_id'], 'return', $actorId, null, $comment, ['step_id' => $stepId]);
+        log_activity($actorId, 'Workflow Return', 'Returned step #' . $stepId . ' for correction');
         return ['ok' => true, 'message' => 'Returned for correction.'];
     }
 

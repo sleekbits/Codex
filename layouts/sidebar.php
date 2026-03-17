@@ -17,6 +17,9 @@
         <?php if (has_permission('workflow_action_view')): ?>
             <li class="nav-item"><a class="nav-link" href="/Codex/workflow/inbox.php"><i class="bi bi-inboxes me-2"></i>Workflow Inbox</a></li>
         <?php endif; ?>
+        <?php if (has_permission('logs_view')): ?>
+            <li class="nav-item"><a class="nav-link" href="/Codex/logs/index.php"><i class="bi bi-clock-history me-2"></i>Audit Trail</a></li>
+        <?php endif; ?>
         <?php if (has_role(['Admin'])): ?>
             <li class="nav-item"><a class="nav-link" href="/Codex/users/index.php"><i class="bi bi-people me-2"></i>Users</a></li>
             <li class="nav-item"><a class="nav-link" href="/Codex/roles/index.php"><i class="bi bi-shield-lock me-2"></i>Roles</a></li>
