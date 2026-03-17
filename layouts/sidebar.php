@@ -9,6 +9,9 @@
             <li class="nav-item"><a class="nav-link" href="/Codex/roles/index.php"><i class="bi bi-shield-lock me-2"></i>Roles</a></li>
             <li class="nav-item"><a class="nav-link" href="/Codex/master/index.php"><i class="bi bi-diagram-3 me-2"></i>Master Data</a></li>
             <li class="nav-item"><a class="nav-link" href="/Codex/settings/index.php"><i class="bi bi-gear me-2"></i>Settings</a></li>
+            <li class="nav-item"><a class="nav-link" href="/Codex/doa/index.php"><i class="bi bi-diagram-2 me-2"></i>DOA Hierarchy</a></li>
+            <li class="nav-item"><a class="nav-link" href="/Codex/poa/index.php"><i class="bi bi-diagram-3-fill me-2"></i>POA Hierarchy</a></li>
+
         <?php endif; ?>
     </ul>
 </div>

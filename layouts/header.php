@@ -22,7 +22,7 @@
             <div class="dropdown-menu dropdown-menu-end profile-dropdown p-0 overflow-hidden">
                 <div class="p-3 border-bottom bg-light-subtle">
                     <div class="d-flex align-items-start gap-2">
-                        <div class="avatar-circle"><i class="bi bi-person"></i></div>
+                        <?php if (!empty(user()['profile_image'])): ?><img src="/Codex/<?= e(user()['profile_image']) ?>" class="avatar-circle" style="object-fit:cover;"><?php else: ?><div class="avatar-circle"><i class="bi bi-person"></i></div><?php endif; ?>
                         <div>
                             <div class="fw-bold text-dark"><?= e(user()['full_name']) ?></div>
                             <div class="small text-muted-custom"><?= e(user()['role_name']) ?></div>

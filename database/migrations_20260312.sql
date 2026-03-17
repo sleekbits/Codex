@@ -1,5 +1,5 @@
 -- Safe migration for existing deployments
-USE asteco_procurement_dashboard;
+USE ezyro_41363280_codex;
 
 -- 1) Allow duplicate PR numbers
 SET @idx := (SELECT INDEX_NAME FROM information_schema.STATISTICS
@@ -17,3 +17,54 @@ ALTER TABLE tracking_records
   ADD INDEX idx_tr_type (type_id),
   ADD INDEX idx_tr_assigned (assigned_to_user_id),
   ADD INDEX idx_tr_contractor (contractor_id);
+
+-- 3) User profile extensions
+ALTER TABLE users
+  ADD COLUMN designation VARCHAR(120) NULL AFTER full_name,
+  ADD COLUMN phone VARCHAR(30) NULL AFTER email,
+  ADD COLUMN profile_image VARCHAR(255) NULL AFTER password;
+
+-- 4) Role permissions
+CREATE TABLE IF NOT EXISTS role_permissions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  role_id INT NOT NULL,
+  permission_key VARCHAR(100) NOT NULL,
+  is_allowed TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  UNIQUE KEY uk_role_perm (role_id, permission_key),
+  CONSTRAINT fk_role_permissions_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+);
+
+-- 5) DOA and POA matrices
+CREATE TABLE IF NOT EXISTS doa_hierarchy (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_name VARCHAR(150) NOT NULL,
+  type VARCHAR(120) NOT NULL,
+  threshold_from DECIMAL(14,2) NOT NULL DEFAULT 0,
+  threshold_to DECIMAL(14,2) NOT NULL DEFAULT 0,
+  approval_level INT NOT NULL DEFAULT 1,
+  approver_role_id INT NOT NULL,
+  approval_order INT NOT NULL DEFAULT 1,
+  status TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_doa_role FOREIGN KEY (approver_role_id) REFERENCES roles(id)
+);
+
+CREATE TABLE IF NOT EXISTS poa_hierarchy (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_name VARCHAR(150) NOT NULL,
+  type VARCHAR(120) NOT NULL,
+  threshold_from DECIMAL(14,2) NOT NULL DEFAULT 0,
+  threshold_to DECIMAL(14,2) NOT NULL DEFAULT 0,
+  signature_level INT NOT NULL DEFAULT 1,
+  approver_role_id INT NOT NULL,
+  signature_order INT NOT NULL DEFAULT 1,
+  status TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_poa_role FOREIGN KEY (approver_role_id) REFERENCES roles(id)
+);

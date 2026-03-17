@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS asteco_procurement_dashboard;
-USE asteco_procurement_dashboard;
+CREATE DATABASE IF NOT EXISTS ezyro_41363280_codex;
+USE ezyro_41363280_codex;
 
-DROP TABLE IF EXISTS activity_logs, export_logs, import_logs, tracking_records, app_settings, contractors, po_statuses, types, users, roles;
+DROP TABLE IF EXISTS poa_hierarchy, doa_hierarchy, role_permissions, activity_logs, export_logs, import_logs, tracking_records, app_settings, contractors, po_statuses, types, users, roles;
 
 CREATE TABLE roles (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -13,9 +13,12 @@ CREATE TABLE roles (
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   full_name VARCHAR(100) NOT NULL,
+  designation VARCHAR(120) NULL,
   email VARCHAR(120) NOT NULL,
+  phone VARCHAR(30) NULL,
   username VARCHAR(80) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
+  profile_image VARCHAR(255) NULL,
   role_id INT NOT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NULL,
@@ -99,6 +102,51 @@ CREATE TABLE export_logs (
   CONSTRAINT fk_export_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+
+
+CREATE TABLE role_permissions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  role_id INT NOT NULL,
+  permission_key VARCHAR(100) NOT NULL,
+  is_allowed TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  UNIQUE KEY uk_role_perm (role_id, permission_key),
+  CONSTRAINT fk_role_permissions_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+);
+
+CREATE TABLE doa_hierarchy (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_name VARCHAR(150) NOT NULL,
+  type VARCHAR(120) NOT NULL,
+  threshold_from DECIMAL(14,2) NOT NULL DEFAULT 0,
+  threshold_to DECIMAL(14,2) NOT NULL DEFAULT 0,
+  approval_level INT NOT NULL DEFAULT 1,
+  approver_role_id INT NOT NULL,
+  approval_order INT NOT NULL DEFAULT 1,
+  status TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_doa_role FOREIGN KEY (approver_role_id) REFERENCES roles(id)
+);
+
+CREATE TABLE poa_hierarchy (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  hierarchy_name VARCHAR(150) NOT NULL,
+  type VARCHAR(120) NOT NULL,
+  threshold_from DECIMAL(14,2) NOT NULL DEFAULT 0,
+  threshold_to DECIMAL(14,2) NOT NULL DEFAULT 0,
+  signature_level INT NOT NULL DEFAULT 1,
+  approver_role_id INT NOT NULL,
+  signature_order INT NOT NULL DEFAULT 1,
+  status TINYINT(1) NOT NULL DEFAULT 1,
+  remarks TEXT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  CONSTRAINT fk_poa_role FOREIGN KEY (approver_role_id) REFERENCES roles(id)
+);
+
 CREATE TABLE activity_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NULL,
@@ -110,14 +158,27 @@ CREATE TABLE activity_logs (
 );
 
 INSERT INTO roles(role_name,created_at,updated_at) VALUES
-('Admin',NOW(),NOW()),('Manager',NOW(),NOW()),('Viewer',NOW(),NOW());
+('Admin',NOW(),NOW()),
+('ERP/IT',NOW(),NOW()),
+('Chief Executive Officer (CEO)',NOW(),NOW()),
+('Chief Procurement Officer (CPO)',NOW(),NOW()),
+('Executive Director Procurement',NOW(),NOW()),
+('Director Procurement',NOW(),NOW()),
+('Associate Director Procurement',NOW(),NOW()),
+('Senior Manager Procurement',NOW(),NOW()),
+('Manager Procurement',NOW(),NOW()),
+('Assistant Manager Procurement',NOW(),NOW()),
+('Senior Buyer',NOW(),NOW()),
+('Buyer',NOW(),NOW()),
+('Senior Procurement Officer',NOW(),NOW()),
+('Procurement Officer',NOW(),NOW());
 
-INSERT INTO users(full_name,email,username,password,role_id,is_active,created_at,updated_at) VALUES
-('System Admin','admin@asteco.local','admin','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',1,1,NOW(),NOW()),
-('Aisha Khan','aisha@asteco.local','aisha','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',2,1,NOW(),NOW()),
-('Bilal Ahmed','bilal@asteco.local','bilal','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',2,1,NOW(),NOW()),
-('Carla Diaz','carla@asteco.local','carla','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',3,1,NOW(),NOW()),
-('David Lee','david@asteco.local','david','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',3,1,NOW(),NOW());
+INSERT INTO users(full_name,designation,email,phone,username,password,profile_image,role_id,is_active,created_at,updated_at) VALUES
+('System Admin','System Administrator','admin@asteco.local','+971500000001','admin','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',NULL,1,1,NOW(),NOW()),
+('Aisha Khan','Manager Procurement','aisha@asteco.local','+971500000002','aisha','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',NULL,2,1,NOW(),NOW()),
+('Bilal Ahmed','Senior Buyer','bilal@asteco.local','+971500000003','bilal','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',NULL,2,1,NOW(),NOW()),
+('Carla Diaz','Viewer','carla@asteco.local','+971500000004','carla','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',NULL,3,1,NOW(),NOW()),
+('David Lee','Viewer','david@asteco.local','+971500000005','david','$2y$12$thhvzlBIxl4FbXdCsH3fXOwVkcrB80.8KGcewK4jEAbjbyUtBJ6aq',NULL,3,1,NOW(),NOW());
 
 INSERT INTO po_statuses(status_name,created_at,updated_at) VALUES
 ('Deleted',NOW(),NOW()),

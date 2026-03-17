@@ -8,8 +8,11 @@ LEFT JOIN po_statuses ps ON ps.id=tr.po_status_id
 LEFT JOIN types t ON t.id=tr.type_id
 WHERE tr.deleted_at IS NULL";
 $params=[];
-$map=['year'=>'YEAR(tr.pr_receival_date)=?','month'=>'MONTH(tr.pr_receival_date)=?','assigned_to'=>'tr.assigned_to_user_id=?','contractor_id'=>'tr.contractor_id=?','po_status_id'=>'tr.po_status_id=?','type_id'=>'tr.type_id=?'];
-foreach($map as $k=>$w){ if(!empty($_GET[$k])){$sql.=" AND $w"; $params[]=$_GET[$k];}}
+$multiMap=['year'=>'YEAR(tr.pr_receival_date)','month'=>'MONTH(tr.pr_receival_date)','assigned_to'=>'tr.assigned_to_user_id','contractor_id'=>'tr.contractor_id','po_status_id'=>'tr.po_status_id','type_id'=>'tr.type_id'];
+foreach($multiMap as $k=>$col){
+  $vals=get_multi_filter($k);
+  if($vals){$sql.=' AND '.where_in_clause($col,$vals,$params);} 
+}
 if(!empty($_GET['pr_no'])){$sql.=' AND tr.pr_no LIKE ?';$params[]='%'.$_GET['pr_no'].'%';}
 if(!empty($_GET['po_no'])){$sql.=' AND tr.po_no LIKE ?';$params[]='%'.$_GET['po_no'].'%';}
 if(!empty($_GET['date_from'])){$sql.=' AND tr.pr_receival_date >= ?';$params[]=$_GET['date_from'];}

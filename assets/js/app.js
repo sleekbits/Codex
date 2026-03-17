@@ -7,7 +7,6 @@ $(function(){
     $('.row-check').prop('checked', $(this).is(':checked'));
     toggleBulkToolbar();
   });
-
   $(document).on('change', '.row-check', toggleBulkToolbar);
 
   function toggleBulkToolbar(){
@@ -21,25 +20,23 @@ $(function(){
     const value = String($(this).data('value'));
     const current = new URLSearchParams(window.location.search);
     const existing = current.getAll(key);
-
     if (existing.includes(value)) {
-      const next = existing.filter(v => v !== value);
       current.delete(key);
-      next.forEach(v => current.append(key, v));
+      existing.filter(v => v !== value).forEach(v => current.append(key, v));
       $(this).removeClass('active');
     } else {
       current.append(key, value);
       $(this).addClass('active');
     }
-
     history.replaceState({}, '', '?' + current.toString());
     refreshDashboard(current);
   });
 
   function refreshDashboard(params){
-    if (!$('#dashboardAjax').length) return;
+    if (!$('#dashboardFilters').length) return;
     $.get('/Codex/dashboard/data.php', params.toString(), function(resp){
-      $('#dashboardAjax').html(resp.html);
+      if (resp.kpi_html !== undefined) $('#dashboardAjaxTop').html(resp.kpi_html);
+      if (resp.chart_html !== undefined) $('#dashboardAjaxCharts').html(resp.chart_html);
     }, 'json');
   }
 });

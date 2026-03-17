@@ -23,6 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'email' => $user['email'],
             'role_id' => $user['role_id'],
             'role_name' => $user['role_name'],
+            'designation' => $user['designation'] ?? null,
+            'phone' => $user['phone'] ?? null,
+            'profile_image' => $user['profile_image'] ?? null,
         ];
 
         $cookieParams = session_get_cookie_params();
