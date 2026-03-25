@@ -1,56 +1,100 @@
-# Asteco Procurement Dashboard
+# PPTX Autofill Web Application
 
-Modernized traditional PHP + MySQL dashboard app for PR/PO/Contract tracking.
+Production-ready starter for automating placeholder-based PowerPoint generation.
 
 ## Stack
-- Core PHP 8+
-- MySQL (phpMyAdmin-ready SQL + migration script)
-- Bootstrap 5 + jQuery + DataTables
-- Chart.js
-- PhpSpreadsheet-ready export/import hooks
+- **Frontend:** Next.js 15 (App Router), TypeScript, Tailwind
+- **Backend:** FastAPI, python-pptx
+- **Async-ready:** in-memory jobs now, Redis/Celery scaffold included
 
-## Key Updated Features
-- Asteco branded UI theme and polished responsive admin layout
-- Dashboard slicers (Year/Month/Type), AJAX chart refresh, enhanced KPI highlights
-- Pie chart by Type and Top 10 Contractor value bar chart
-- Tracking page advanced filters, status badges, icon actions, DD-MMM-YYYY dates
-- Bulk row select + bulk soft delete (Admin)
-- Duplicate indicators for PR No. and PO No.
-- Export page with granular filters (year/month/assigned/contractor/status/type/PR/PO/date range/status groups)
-- User management modernization with edit/delete/reset-password actions
-- Profile page modernization with improved layout and password section
-- New Workflow Hierarchy engine with configurable stages (endorsement/approval/parallel), threshold/type/department/BU rules, and runtime approval inbox with audit trail
+## Project Structure
 
-## Setup (XAMPP/WAMP/LAMP)
-1. Copy project to web root (e.g. `htdocs/Codex`).
-2. Create database in phpMyAdmin.
-3. Import `database/ezyro_41363280_codex.sql` (fresh full setup with schema + seed data).
-4. For existing deployments only, run `database/migrations_20260312.sql`.
-5. Update DB credentials only in `config/config.php`.
-6. (Optional for XLSX features) install PhpSpreadsheet:
-   ```bash
-   composer require phpoffice/phpspreadsheet
-   ```
-7. Open: `http://localhost/Codex/`
+```text
+/backend
+  /core/config.py
+  /models/job.py
+  /routes/upload.py
+  /routes/parse.py
+  /routes/fill.py
+  /routes/download.py
+  /services/pptx_parser.py
+  /services/pptx_filler.py
+  /tests
+/frontend
+  /app/upload
+  /app/review
+  /app/fill
+  /app/generate
+docker-compose.yml
+.env.example
+```
 
-## Default Login
-- Username: `admin`
-- Password: `password123`
+## Features
+1. Upload `.pptx` template with validation and TTL-based temporary storage.
+2. Detect placeholders in text frames, tables, and optional speaker notes.
+3. Supports `{{key}}`, `[[key]]`, `<<key>>`, including nested keys like `project.title`.
+4. Dynamic 4-step UI flow:
+   - Upload
+   - Review fields + mapping context
+   - Fill answers form (typed controls)
+   - Generate + download
+5. Replaces placeholders in text and tables while preserving slide-level structure.
+6. Job lifecycle states: `uploaded -> parsed -> awaiting_input -> generating -> complete|failed`.
+7. Token-based API auth via `x-api-token` header.
+8. Audit log events for upload, parse, generate, download.
+9. Repeating sections scaffolded as v2 through token sanitizer support for section syntax (`#` and `/`).
 
+## Backend Run (local)
 
-## Templates
-- Tracking import template: `database/sample_tracking_import_template.csv`
-- Supplier import template: `database/sample_supplier_import_template.csv`
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp ../.env.example .env
+uvicorn main:app --reload
+```
 
-## ERP Unification Refactor Notes
-- Added normalized shared master tables: `departments`, `business_units`, `cost_centers`, `currencies`, `purchasing_groups`.
-- PR/PO headers now support relational IDs (`*_id`) for type, department, BU, purchasing group, currency.
-- PO now supports source linkage back to PR using `source_pr_header_id`.
-- Tracking can now optionally link to PR/PO/Supplier records via foreign keys (`pr_header_id`, `po_header_id`, `supplier_id`).
-- Added finance integration tables: `finance_ap_invoices` and `finance_payments` linked to PO.
-- Added unified analytics view `vw_erp_document_facts` used by Dashboard so KPIs/charts come from integrated PR/PO/Tracking facts instead of isolated tracking-only logic.
-- Added Finance module page (`/finance/index.php`) to show PO vs invoice vs payment rollups.
+API docs: http://localhost:8000/docs
 
-### Legacy/Duplicate Structures
-- Existing `doa_hierarchy` and `poa_hierarchy` are preserved for backward compatibility.
-- Canonical workflow runtime is now `workflow_hierarchy_*`, `workflow_transactions`, `workflow_transaction_steps`, and `workflow_audit_logs`.
+## Frontend Run (local)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+UI: http://localhost:3000
+
+## Docker
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+## Tests
+
+```bash
+cd backend
+pytest
+```
+
+Covers:
+- Placeholder extraction (including split-token runs)
+- Placeholder replacement in text boxes and table cells
+
+## API Flow
+1. `POST /upload` -> returns `jobId`
+2. `POST /parse/{jobId}?include_notes=true` -> placeholder metadata JSON
+3. `POST /fill/{jobId}` with answers map -> returns `/download/{jobId}` URL
+4. `GET /download/{jobId}` -> generated PPTX file
+
+## Security & Compliance
+- Files saved in temp workspace with TTL cleanup hooks.
+- Placeholder keys sanitized to allow only safe chars.
+- No document content in audit logs.
+
+## Known limitations
+- For split placeholders across many runs, replacement is best-effort by collapsing paragraph runs into first run (preserves paragraph but not full per-run styling granularity).
+- Repeating row sections (`{{#collection}}...{{/collection}}`) are scaffolded as v2 only.
